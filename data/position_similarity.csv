@@ -1,0 +1,16 @@
+position_a,position_b,reason
+RB,LB,Full-back on the other flank
+RB,CB,Full-backs often tuck in to centre-back
+LB,CB,Full-backs often tuck in to centre-back
+CB,DM,Holding midfielders often drop into the back line
+DM,CM,Neighbouring central midfield roles
+CM,AM,Neighbouring central midfield roles
+CM,LM,Wide midfielder moving inside
+LM,LW,Wide midfielder pushing up
+AM,RW,Playmakers drift wide
+AM,LW,Playmakers drift wide
+AM,SS,Both play in the hole behind the striker
+RW,LW,Winger on the other flank
+RW,ST,Inside forwards play as strikers
+LW,ST,Inside forwards play as strikers
+SS,ST,Second striker moving up front
