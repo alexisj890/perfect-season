@@ -1,0 +1,177 @@
+club,slot,slot_family,player,natural_position,secondary_positions,nationality,years_at_club,start_year,end_year,peak_window,peak_start,peak_end,individual,peak_at_club,achievements,longevity,honors,weighted_score,tier,position_fit,effective_rating,suggested_cost_musd,club_highlights,selection_note
+Arsenal,GK,GK,David Seaman,GK,,England,1990–2003,1990,2003,1997–2002,1997,2002,90,90,88,90,45,87.35,B,Natural,87.35,25,"3 league titles, 4 FA Cups, 1994 Cup Winners' Cup",
+Arsenal,RB,RB,Lee Dixon,RB,,England,1988–2002,1988,2002,1989–1998,1989,1998,84,84,90,96,30,83.7,B,Natural,83.7,17,"4 league titles, 3 FA Cups, 1994 Cup Winners' Cup",
+Arsenal,RCB,CB,Tony Adams,CB,,England,1983–2002,1983,2002,1989–1998,1989,1998,89,89,94,98,45,88.7,A,Natural,88.7,27,Captain for 14 years; titles in three different decades,
+Arsenal,LCB,CB,Sol Campbell,CB,,England,2001–2006; 2010,2001,2010,2001–2004,2001,2004,88,90,85,65,45,83.55,B,Natural,83.55,17,"2002 double, 2003–04 Invincibles",Peak debated vs Tottenham; Arsenal chosen for Invincibles/double
+Arsenal,LB,LB,Nigel Winterburn,LB,,England,1987–2000,1987,2000,1989–1998,1989,1998,83,83,86,92,25,81.6,C,Natural,81.6,13,"3 league titles, part of the famous back four",
+Arsenal,CDM,DM,Patrick Vieira,DM/CM,,France,1996–2005,1996,2005,1998–2004,1998,2004,93,93,92,88,60,90.65,A,Natural,90.65,31,"3 PL titles, 4 FA Cups, Invincibles captain",
+Arsenal,CM,CM,Cesc Fàbregas,CM/AM,,Spain,2003–2011,2003,2011,2007–2011,2007,2011,88,89,55,82,45,78.95,C,Natural,78.95,8,FA Cup 2005; PFA Young Player 2008; captain,Peak clearly Arsenal; trophy return low
+Arsenal,CAM,AM,Dennis Bergkamp,SS/AM,ST,Netherlands,1995–2006,1995,2006,1997–2004,1997,2004,93,93,92,92,70,91.55,A,Natural,91.55,33,"3 PL, 4 FA Cups; PFA & FWA Player of the Year 1998",
+Arsenal,RW,RW,Bukayo Saka,RW,LW,England,2018–present,2018,2026,2022–present,2022,2026,89,89,55,85,55,80.1,C,Natural,80.1,10,"FA Cup 2020; England Player of the Year 2022, 2023",Active — re-check after each season
+Arsenal,ST,ST,Thierry Henry,ST,LW,France,1999–2007; 2012,1999,2012,2002–2006,2002,2006,98,98,90,92,95,95.65,S,Natural,95.65,41,"Club record 228 goals; 2 PL, 3 FA Cups; 4 PL Golden Boots; 2x PFA, 3x FWA",
+Arsenal,LW,LW,Robert Pirès,LW,AM,France,2000–2006,2000,2006,2001–2004,2001,2004,88,89,88,82,60,86.3,B,Natural,86.3,23,"2 PL, 3 FA Cups; FWA Player of the Year 2002",
+Chelsea,GK,GK,Petr Čech,GK,,Czech Republic,2004–2015,2004,2015,2004–2012,2004,2012,93,94,95,92,70,92.45,A,Natural,92.45,35,"4 PL, 2012 Champions League, 2013 Europa League",
+Chelsea,RB,RB,César Azpilicueta,RB,"CB, LB",Spain,2012–2023,2012,2023,2014–2021,2014,2021,85,85,95,96,30,85.35,B,Natural,85.35,21,"2 PL, 2021 Champions League, 2 Europa Leagues; captain",
+Chelsea,RCB,CB,John Terry,CB,,England,1998–2017,1998,2017,2004–2012,2004,2012,92,92,97,99,70,92.6,A,Natural,92.6,35,"5 PL, 2012 Champions League, 5 FA Cups; PFA Player of the Year 2005",
+Chelsea,LCB,CB,Ricardo Carvalho,CB,,Portugal,2004–2010,2004,2010,2004–2008,2004,2008,88,89,88,75,40,84.6,B,Natural,84.6,19,3 PL titles,
+Chelsea,LB,LB,Ashley Cole,LB,,England,2006–2014,2006,2014,2008–2012,2008,2012,90,91,95,88,45,88.85,A,Natural,88.85,28,"2010 PL, 2012 Champions League, 4 FA Cups",Peak debated vs Arsenal (1999–2006); Chelsea chosen
+Chelsea,CDM,DM,Claude Makélélé,DM,,France,2003–2008,2003,2008,2003–2006,2003,2006,89,90,85,78,40,84.95,B,Natural,84.95,20,2 PL titles; the role was named after him,Peak debated vs Real Madrid (2000–03)
+Chelsea,CM,CM,N'Golo Kanté,DM/CM,,France,2016–2023,2016,2023,2016–2021,2016,2021,91,92,90,78,75,89.0,A,Natural,89.0,28,"2017 PL, 2021 Champions League; PFA & FWA 2017",
+Chelsea,CAM,AM,Frank Lampard,CM/AM,,England,2001–2014,2001,2014,2004–2010,2004,2010,93,93,97,97,70,93.05,S,Natural,93.05,36,"Club record 211 goals; 3 PL, 2012 Champions League; FWA 2005",
+Chelsea,RW,RW,Gianfranco Zola,SS/AM,"RW, ST",Italy,1996–2003,1996,2003,1996–2000,1996,2000,89,89,78,82,55,84.4,B,Secondary,78.49,19,"2 FA Cups, 1998 Cup Winners' Cup; FWA 1997",Played off the striker; slotted wide right
+Chelsea,ST,ST,Didier Drogba,ST,,Ivory Coast,2004–2012; 2014–2015,2004,2015,2006–2012,2006,2012,93,93,97,90,75,92.6,A,Natural,92.6,35,"4 PL, 2012 Champions League (equaliser + winning penalty); 2 Golden Boots",
+Chelsea,LW,LW,Eden Hazard,LW,AM,Belgium,2012–2019,2012,2019,2014–2019,2014,2019,94,94,88,88,75,91.25,A,Natural,91.25,33,"2 PL, 2 Europa Leagues; PFA & FWA 2015",
+Liverpool,GK,GK,Alisson Becker,GK,,Brazil,2018–present,2018,2026,2019–2022,2019,2022,95,96,88,82,80,91.85,A,Natural,91.85,34,"2019 Champions League, 2020 & 2025 PL; Yashin Trophy 2019",Edged Ray Clemence on peak; Clemence wins on trophies
+Liverpool,RB,RB,Trent Alexander-Arnold,RB,CM,England,2016–2025,2016,2025,2018–2022,2018,2022,91,92,90,88,50,88.75,A,Natural,88.75,28,"2019 Champions League, 2020 & 2025 PL",Joined Real Madrid in 2025; peak clearly Liverpool
+Liverpool,RCB,CB,Virgil van Dijk,CB,,Netherlands,2018–present,2018,2026,2018–2020,2018,2020,96,97,92,85,85,93.85,S,Natural,93.85,38,"2019 Champions League, 2020 & 2025 PL; UEFA Player of the Year 2019, PFA 2019",
+Liverpool,LCB,CB,Alan Hansen,CB,,Scotland,1977–1991,1977,1991,1978–1986,1978,1986,90,90,98,96,35,89.45,A,Natural,89.45,29,"8 league titles, 3 European Cups",
+Liverpool,LB,LB,Andy Robertson,LB,,Scotland,2017–present,2017,2026,2018–2022,2018,2022,87,88,90,88,30,85.15,B,Natural,85.15,20,"2019 Champions League, 2020 & 2025 PL",
+Liverpool,CDM,DM,Graeme Souness,CM/DM,,Scotland,1978–1984,1978,1984,1979–1984,1979,1984,91,92,97,80,40,88.85,A,Natural,88.85,28,"5 league titles, 3 European Cups; captain",
+Liverpool,CM,CM,Terry McDermott,CM/AM,,England,1974–1982,1974,1982,1977–1980,1977,1980,86,87,95,82,75,87.15,B,Natural,87.15,24,3 European Cups; first to win PFA & FWA in the same year (1980),
+Liverpool,CAM,AM,Steven Gerrard,CM/AM,,England,1998–2015,1998,2015,2004–2009,2004,2009,95,96,82,99,85,92.6,A,Natural,92.6,35,"2005 Champions League, 2001 UEFA Cup, 2 FA Cups; PFA 2006, FWA 2009",Never won the league — achievements score reflects that
+Liverpool,RW,RW,Mohamed Salah,RW,ST,Egypt,2017–present,2017,2026,2017–2025,2017,2025,96,97,92,92,92,94.9,S,Natural,94.9,40,"2019 Champions League, 2020 & 2025 PL; 3x PFA Player of the Year; 4 Golden Boots",
+Liverpool,ST,ST,Kenny Dalglish,SS/ST,AM,Scotland,1977–1990,1977,1990,1977–1984,1977,1984,95,95,98,94,75,94.5,S,Natural,94.5,39,"3 European Cups, 6 league titles; PFA 1983, FWA 1979 & 1983",
+Liverpool,LW,LW,John Barnes,LW,AM,England,1987–1997,1987,1997,1987–1991,1987,1991,90,92,85,88,70,88.4,A,Natural,88.4,27,"2 league titles, 1989 FA Cup; PFA 1988, FWA 1988 & 1990",
+Manchester City,GK,GK,Ederson,GK,,Brazil,2017–2025,2017,2025,2018–2023,2018,2023,89,89,97,85,55,88.5,A,Natural,88.5,27,"6 PL titles, 2023 Champions League; 3 Golden Gloves",
+Manchester City,RB,RB,Kyle Walker,RB,CB,England,2017–2025,2017,2025,2018–2023,2018,2023,88,88,96,85,30,86.4,B,Natural,86.4,23,"6 PL titles, 2023 Champions League",
+Manchester City,RCB,CB,Vincent Kompany,CB,,Belgium,2008–2019,2008,2019,2011–2014,2011,2014,90,91,92,92,55,89.15,A,Natural,89.15,28,4 PL titles as captain; PL Player of the Season 2012,
+Manchester City,LCB,CB,Rúben Dias,CB,,Portugal,2020–present,2020,2026,2020–2023,2020,2023,90,91,95,80,75,89.55,A,Natural,89.55,29,"3+ PL titles, 2023 Champions League; FWA & PL Player of the Season 2021",
+Manchester City,LB,LB,João Cancelo,RB/LB,,Portugal,2019–2023,2019,2023,2020–2022,2020,2022,87,89,85,60,35,81.9,C,Natural,81.9,14,2 PL titles; inverted full-back at his peak,Weakest City position historically
+Manchester City,CDM,DM,Rodri,DM,CM,Spain,2019–present,2019,2026,2022–2024,2022,2024,95,97,97,82,95,94.7,S,Natural,94.7,39,Ballon d'Or 2024; 2023 Champions League final winner; 4 PL titles,
+Manchester City,CM,CM,Yaya Touré,CM,"DM, AM",Ivory Coast,2010–2018,2010,2018,2011–2014,2011,2014,92,93,90,85,75,90.35,A,Natural,90.35,31,3 PL titles; African Player of the Year 2011–2014,
+Manchester City,CAM,AM,Kevin De Bruyne,AM/CM,,Belgium,2015–2025,2015,2025,2017–2023,2017,2023,96,96,98,93,85,95.55,S,Natural,95.55,41,"6 PL titles, 2023 Champions League; PFA Player of the Year 2020 & 2021",
+Manchester City,RW,RW,Bernardo Silva,RW/AM,CM,Portugal,2017–present,2017,2026,2018–2023,2018,2023,89,89,97,90,50,88.75,A,Natural,88.75,28,"6 PL titles, 2023 Champions League",
+Manchester City,ST,ST,Sergio Agüero,ST,,Argentina,2011–2021,2011,2021,2011–2019,2011,2019,94,94,95,96,65,92.95,A,Natural,92.95,36,Club record 260 goals; 5 PL titles; the 93:20 title winner,Beat Haaland on longevity (see omissions)
+Manchester City,LW,LW,Raheem Sterling,LW/RW,,England,2015–2022,2015,2022,2017–2020,2017,2020,89,90,95,85,45,87.9,B,Natural,87.9,26,4 PL titles; FWA Footballer of the Year 2019,
+Manchester United,GK,GK,Peter Schmeichel,GK,,Denmark,1991–1999,1991,1999,1992–1999,1992,1999,95,95,97,88,55,92.7,A,Natural,92.7,35,"5 PL titles, 1999 treble",
+Manchester United,RB,RB,Gary Neville,RB,,England,1992–2011,1992,2011,1996–2004,1996,2004,86,86,98,98,35,87.05,B,Natural,87.05,24,"8 PL titles, 2 Champions Leagues",
+Manchester United,RCB,CB,Rio Ferdinand,CB,,England,2002–2014,2002,2014,2005–2011,2005,2011,91,92,97,92,40,90.05,A,Natural,90.05,30,"6 PL titles, 2008 Champions League",
+Manchester United,LCB,CB,Nemanja Vidić,CB,,Serbia,2006–2014,2006,2014,2007–2011,2007,2011,91,92,96,85,65,90.4,A,Natural,90.4,31,"5 PL titles, 2008 Champions League; PL Player of the Season 2009 & 2011",
+Manchester United,LB,LB,Denis Irwin,LB,RB,Ireland,1990–2002,1990,2002,1993–2000,1993,2000,87,87,98,94,30,87.05,B,Natural,87.05,24,"7 PL titles, 1999 treble",Evra close behind
+Manchester United,CDM,DM,Roy Keane,CM/DM,,Ireland,1993–2005,1993,2005,1996–2002,1996,2002,93,94,97,92,60,92.35,A,Natural,92.35,35,"7 PL titles, 1999 treble captain-in-all-but-final; PFA & FWA 2000",
+Manchester United,CM,CM,Paul Scholes,CM,AM,England,1994–2011; 2012–2013,1994,2013,1999–2008,1999,2008,92,92,99,99,30,91.0,A,Natural,91.0,32,"11 PL titles, 2 Champions Leagues",
+Manchester United,CAM,AM,Bobby Charlton,AM/CM,ST,England,1956–1973,1956,1973,1963–1968,1963,1968,96,97,92,99,98,95.9,S,Natural,95.9,42,Ballon d'Or 1966; 1968 European Cup (scored twice in final),
+Manchester United,RW,RW,George Best,RW/LW,ST,Northern Ireland,1963–1974,1963,1974,1964–1970,1964,1970,97,98,88,85,98,94.35,S,Natural,94.35,39,"Ballon d'Or 1968; 1968 European Cup, 2 league titles",
+Manchester United,ST,ST,Wayne Rooney,ST/SS,AM,England,2004–2017,2004,2017,2007–2012,2007,2012,91,91,95,96,72,91.35,A,Natural,91.35,33,"Club record 253 goals; 5 PL, 2008 Champions League; PFA & FWA 2010",Edged Denis Law on trophies and longevity
+Manchester United,LW,LW,Ryan Giggs,LW,CM,Wales,1990–2014,1990,2014,1993–2003,1993,2003,91,91,100,100,55,91.9,A,Natural,91.9,34,"13 PL titles, 2 Champions Leagues; club appearance record",
+Real Madrid,GK,GK,Iker Casillas,GK,,Spain,1999–2015,1999,2015,2002–2012,2002,2012,94,95,97,98,80,94.6,S,Natural,94.6,39,"3 Champions Leagues, 5 La Liga titles; IFFHS best goalkeeper 5 times",
+Real Madrid,RB,RB,Dani Carvajal,RB,,Spain,2013–present,2013,2026,2016–2024,2016,2024,88,88,99,90,35,87.75,B,Natural,87.75,26,6 Champions Leagues,
+Real Madrid,RCB,CB,Sergio Ramos,CB,RB,Spain,2005–2021,2005,2021,2011–2018,2011,2018,94,94,99,97,70,94.1,S,Natural,94.1,38,"4 Champions Leagues (93rd-minute equaliser in 2014), 5 La Liga; captain",
+Real Madrid,LCB,CB,Fernando Hierro,CB,DM,Spain,1989–2003,1989,2003,1995–2002,1995,2002,90,90,95,94,40,88.9,A,Natural,88.9,28,"3 Champions Leagues, 5 La Liga; captain",
+Real Madrid,LB,LB,Roberto Carlos,LB,,Brazil,1996–2007,1996,2007,1997–2003,1997,2003,93,94,95,93,70,92.55,A,Natural,92.55,35,"3 Champions Leagues, 4 La Liga; Ballon d'Or runner-up 2002",
+Real Madrid,CDM,DM,Toni Kroos,CM/DM,,Germany,2014–2024,2014,2024,2015–2022,2015,2022,93,93,99,90,50,91.75,A,Natural,91.75,34,5 Champions Leagues with Real,
+Real Madrid,CM,CM,Luka Modrić,CM,AM,Croatia,2012–2025,2012,2025,2016–2018,2016,2018,95,97,99,96,98,96.65,S,Natural,96.65,43,6 Champions Leagues; Ballon d'Or 2018,
+Real Madrid,CAM,AM,Zinedine Zidane,AM,CM,France,2001–2006,2001,2006,2001–2003,2001,2003,97,97,85,72,85,91.5,A,Natural,91.5,33,"2002 Champions League (final volley), 2003 La Liga; FIFA World Player 2003",Peak debated vs Juventus (Ballon d'Or 1998); Real chosen
+Real Madrid,RW,RW,Gareth Bale,RW,LW,Wales,2013–2022,2013,2022,2013–2018,2013,2018,89,90,95,75,45,86.9,B,Natural,86.9,24,5 Champions Leagues; overhead-kick goal in 2018 final,Over Raúl/Vinícius for a natural right winger
+Real Madrid,ST,ST,Karim Benzema,ST,,France,2009–2023,2009,2023,2019–2022,2019,2022,94,96,99,96,95,95.85,S,Natural,95.85,42,"Ballon d'Or 2022; 5 Champions Leagues, 4 La Liga",
+Real Madrid,LW,LW,Cristiano Ronaldo,LW/ST,RW,Portugal,2009–2018,2009,2018,2011–2017,2011,2017,99,99,98,92,100,98.15,S,Natural,98.15,46,Club record 450 goals; 4 Champions Leagues; 4 Ballon d'Ors at Real,Peak club Real over Man United
+Atlético Madrid,GK,GK,Jan Oblak,GK,,Slovenia,2014–present,2014,2026,2015–2021,2015,2021,92,93,82,93,65,89.05,A,Natural,89.05,28,2021 La Liga; 5 Zamora Trophies,
+Atlético Madrid,RB,RB,Juanfran,RB,,Spain,2011–2019,2011,2019,2013–2016,2013,2016,84,85,85,85,20,81.4,C,Natural,81.4,13,"2014 La Liga, 2 Europa Leagues",
+Atlético Madrid,RCB,CB,Diego Godín,CB,,Uruguay,2010–2019,2010,2019,2013–2018,2013,2018,91,92,88,92,40,88.25,A,Natural,88.25,27,"2014 La Liga (title-clinching header at Camp Nou), 2 Europa Leagues",
+Atlético Madrid,LCB,CB,Miranda,CB,,Brazil,2011–2015,2011,2015,2012–2014,2012,2014,86,87,86,70,25,81.65,C,Natural,81.65,13,"2014 La Liga, 2012 Europa League, 2013 Copa winner vs Real",
+Atlético Madrid,LB,LB,Filipe Luís,LB,,Brazil,2010–2014; 2015–2019,2010,2019,2013–2016,2013,2016,86,87,86,85,25,83.15,B,Natural,83.15,16,"2014 La Liga, 2 Europa Leagues",
+Atlético Madrid,CDM,DM,Gabi,DM/CM,,Spain,2004–2007; 2011–2018,2004,2018,2013–2016,2013,2016,84,85,88,82,20,81.7,C,Natural,81.7,13,"Captain of 2014 La Liga winners, 2018 Europa League",
+Atlético Madrid,CM,CM,Koke,CM,,Spain,2009–present,2009,2026,2013–2018,2013,2018,86,87,88,98,25,84.85,B,Natural,84.85,20,2014 & 2021 La Liga; club appearance record,
+Atlético Madrid,CAM,AM,Luis Aragonés,AM/SS,ST,Spain,1964–1974,1964,1974,1965–1972,1965,1972,88,89,85,90,60,86.5,B,Natural,86.5,23,3 La Liga titles; Pichichi 1970,
+Atlético Madrid,RW,RW,Antoine Griezmann,SS/ST,"RW, LW",France,2014–2019; 2021–present,2014,2026,2015–2018,2015,2018,92,93,82,90,75,89.25,A,Secondary,83.0,29,Club's all-time top scorer; 2018 Europa League; Ballon d'Or 3rd 2016,Second striker used on the right
+Atlético Madrid,ST,ST,José Eulogio Gárate,ST,,Spain,1966–1977,1966,1977,1968–1971,1968,1971,87,88,88,90,75,87.2,B,Natural,87.2,24,3 La Liga titles; 3 straight Pichichi Trophies (1969–71),Over Forlán/Falcao on trophies and longevity
+Atlético Madrid,LW,LW,Paulo Futre,LW,,Portugal,1987–1993; 1998,1987,1998,1987–1991,1987,1991,89,90,65,75,30,80.15,C,Natural,80.15,10,2 Copas del Rey,
+Barcelona,GK,GK,Víctor Valdés,GK,,Spain,2002–2014,2002,2014,2008–2012,2008,2012,87,88,99,94,55,88.8,A,Natural,88.8,28,"3 Champions Leagues, 6 La Liga; 5 Zamora Trophies",
+Barcelona,RB,RB,Dani Alves,RB,,Brazil,2008–2016,2008,2016,2009–2015,2009,2015,92,93,99,88,40,90.7,A,Natural,90.7,31,"3 Champions Leagues, 6 La Liga",
+Barcelona,RCB,CB,Carles Puyol,CB,RB,Spain,1999–2014,1999,2014,2005–2011,2005,2011,91,92,98,99,45,91.2,A,Natural,91.2,32,"3 Champions Leagues, 6 La Liga; captain",
+Barcelona,LCB,CB,Gerard Piqué,CB,,Spain,2008–2022,2008,2022,2009–2016,2009,2016,91,92,99,96,30,90.35,A,Natural,90.35,31,"3 Champions Leagues, 8 La Liga",
+Barcelona,LB,LB,Jordi Alba,LB,,Spain,2012–2023,2012,2023,2014–2019,2014,2019,88,89,96,92,25,87.15,B,Natural,87.15,24,"2015 Champions League, 6 La Liga",
+Barcelona,CDM,DM,Sergio Busquets,DM,,Spain,2008–2023,2008,2023,2009–2016,2009,2016,92,93,99,97,30,91.1,A,Natural,91.1,32,"3 Champions Leagues, 9 La Liga",
+Barcelona,CM,CM,Xavi Hernández,CM,,Spain,1998–2015,1998,2015,2008–2012,2008,2012,97,98,99,99,70,96.55,S,Natural,96.55,43,"4 Champions Leagues, 8 La Liga; Ballon d'Or podium 3 times",
+Barcelona,CAM,AM,Andrés Iniesta,CM/AM,LW,Spain,2002–2018,2002,2018,2009–2012,2009,2012,97,98,99,99,75,96.8,S,Natural,96.8,44,"4 Champions Leagues, 9 La Liga; UEFA Best Player 2012",
+Barcelona,RW,RW,Lionel Messi,RW/ST,AM,Argentina,2004–2021,2004,2021,2009–2019,2009,2019,100,100,100,99,100,99.9,S,Natural,99.9,50,"Club record 672 goals; 4 Champions Leagues, 10 La Liga; 6 Ballon d'Ors at Barça",Peak club Barcelona over PSG
+Barcelona,ST,ST,Luis Suárez,ST,,Uruguay,2014–2020,2014,2020,2014–2018,2014,2018,94,95,94,82,75,92.15,A,Natural,92.15,34,"2015 Champions League, 4 La Liga; European Golden Shoe 2016",
+Barcelona,LW,LW,Ronaldinho,LW/AM,,Brazil,2003–2008,2003,2008,2004–2006,2004,2006,97,99,90,75,95,93.9,S,Natural,93.9,38,"2006 Champions League, 2 La Liga; Ballon d'Or 2005, FIFA World Player 2004 & 2005",
+AC Milan,GK,GK,Dida,GK,,Brazil,2000–2010,2000,2010,2002–2005,2002,2005,87,88,92,85,50,86.25,B,Natural,86.25,23,2003 & 2007 Champions Leagues (3 saves in 2003 shootout),Thin all-time GK pool
+AC Milan,RB,RB,Mauro Tassotti,RB,,Italy,1980–1997,1980,1997,1988–1994,1988,1994,86,87,98,96,30,86.9,B,Natural,86.9,24,"5 Serie A, 3 European Cups",
+AC Milan,RCB,CB,Franco Baresi,CB,,Italy,1977–1997,1977,1997,1987–1994,1987,1994,97,97,99,100,75,96.6,S,Natural,96.6,43,"6 Serie A, 3 European Cups; No. 6 retired; Ballon d'Or runner-up 1989",
+AC Milan,LCB,CB,Alessandro Nesta,CB,,Italy,2002–2012,2002,2012,2003–2007,2003,2007,93,94,92,88,55,90.7,A,Natural,90.7,31,"2003 & 2007 Champions Leagues, 2 Serie A",Peak Milan over Lazio
+AC Milan,LB,LB,Paolo Maldini,LB/CB,,Italy,1985–2009,1985,2009,1988–2003,1988,2003,98,98,100,100,70,97.2,S,Natural,97.2,44,"7 Serie A, 5 European Cups; No. 3 retired",
+AC Milan,CDM,DM,Frank Rijkaard,DM/CM,CB,Netherlands,1988–1993,1988,1993,1989–1991,1989,1991,92,93,95,78,45,89.15,A,Natural,89.15,28,"2 European Cups (scored 1990 final winner), 2 Serie A",
+AC Milan,CM,CM,Andrea Pirlo,CM/DM,,Italy,2001–2011,2001,2011,2003–2007,2003,2007,93,94,93,90,45,90.6,A,Natural,90.6,31,"2 Champions Leagues, 2 Serie A",Peak debated vs Juventus (2011–15); Milan chosen
+AC Milan,CAM,AM,Kaká,AM,,Brazil,2003–2009; 2013–2014,2003,2014,2006–2007,2006,2007,96,98,92,82,98,94.5,S,Natural,94.5,39,Ballon d'Or & FIFA World Player 2007; 2007 Champions League,
+AC Milan,RW,RW,Ruud Gullit,SS/AM,"RW, CM",Netherlands,1987–1993,1987,1993,1987–1989,1987,1989,95,96,94,75,95,93.1,S,Secondary,86.58,36,"Ballon d'Or 1987; 2 European Cups, 3 Serie A",Roaming forward slotted right
+AC Milan,ST,ST,Marco van Basten,ST,,Netherlands,1987–1995,1987,1995,1988–1992,1988,1992,98,99,96,78,100,96.0,S,Natural,96.0,42,"Ballon d'Or 1988, 1989, 1992; 2 European Cups",
+AC Milan,LW,LW,Andriy Shevchenko,ST,SS,Ukraine,1999–2006; 2008–2009,1999,2009,2000–2004,2000,2004,94,95,90,85,95,92.65,A,Out of position,75.97,35,Ballon d'Or 2004; 2003 Champions League (winning penalty),Natural striker — flagged out of position; Rafael Leão is the natural-LW alternative
+Inter Milan,GK,GK,Júlio César,GK,,Brazil,2005–2012,2005,2012,2008–2010,2008,2010,89,91,93,82,50,87.75,B,Natural,87.75,26,"2010 treble, 5 Serie A",Walter Zenga very close
+Inter Milan,RB,RB,Javier Zanetti,RB,CM,Argentina,1995–2014,1995,2014,1998–2010,1998,2010,92,92,92,100,40,90.2,A,Natural,90.2,30,Club record 858 apps; captain of 2010 treble,
+Inter Milan,RCB,CB,Giuseppe Bergomi,CB,RB,Italy,1979–1999,1979,1999,1985–1991,1985,1991,89,89,82,100,30,85.75,B,Natural,85.75,22,"1989 Serie A, 3 UEFA Cups; one-club man",
+Inter Milan,LCB,CB,Walter Samuel,CB,,Argentina,2005–2014,2005,2014,2008–2010,2008,2010,88,90,93,85,30,86.4,B,Natural,86.4,23,"2010 treble, 5 Serie A",
+Inter Milan,LB,LB,Giacinto Facchetti,LB,,Italy,1960–1978,1960,1978,1963–1971,1963,1971,94,95,95,100,70,93.9,S,Natural,93.9,38,"2 European Cups, 4 Serie A; Ballon d'Or runner-up 1965",
+Inter Milan,CDM,DM,Luis Suárez Miramontes,CM/DM,,Spain,1961–1970,1961,1970,1962–1966,1962,1966,93,94,95,88,60,91.55,A,Natural,91.55,33,"Grande Inter regista: 2 European Cups, 3 Serie A",Not the Uruguayan striker (Barcelona)
+Inter Milan,CM,CM,Lothar Matthäus,CM,AM,Germany,1988–1992,1988,1992,1989–1991,1989,1991,96,98,85,70,98,91.9,A,Natural,91.9,34,"Ballon d'Or 1990, FIFA World Player 1991; 1989 Serie A, 1991 UEFA Cup",Peak club Inter over Bayern
+Inter Milan,CAM,AM,Wesley Sneijder,AM,,Netherlands,2009–2013,2009,2013,2009–2011,2009,2011,90,93,92,68,70,88.1,A,Natural,88.1,26,2010 treble; UEFA Club Midfielder of the Year 2010,
+Inter Milan,RW,RW,Jair da Costa,RW,,Brazil,1962–1967; 1968–1972,1962,1972,1963–1966,1963,1966,87,88,93,85,30,85.45,B,Natural,85.45,21,2 European Cups (scored 1965 final winner),
+Inter Milan,ST,ST,Ronaldo Nazário,ST,,Brazil,1997–2002,1997,2002,1997–1998,1997,1998,99,100,60,62,95,87.6,B,Natural,87.6,25,Ballon d'Or & FIFA World Player 1997; 1998 UEFA Cup,Peak debated vs Barcelona (1996–97); Inter chosen for longer stint
+Inter Milan,LW,LW,Sandro Mazzola,SS/AM,"ST, LW",Italy,1960–1977,1960,1977,1963–1971,1963,1971,93,94,95,100,75,93.5,S,Secondary,86.95,37,"2 European Cups, 4 Serie A; capocannoniere 1965",Inside-left forward slotted wide
+Juventus,GK,GK,Gianluigi Buffon,GK,,Italy,2001–2018; 2019–2021,2001,2021,2003–2015,2003,2015,97,97,98,100,90,97.15,S,Natural,97.15,44,10 Serie A titles; UEFA Club Goalkeeper multiple times,Over Dino Zoff
+Juventus,RB,RB,Claudio Gentile,RB/CB,,Italy,1973–1984,1973,1984,1977–1983,1977,1983,88,89,95,92,25,86.95,B,Natural,86.95,24,"6 Serie A, 1977 UEFA Cup, 1984 Cup Winners' Cup",
+Juventus,RCB,CB,Gaetano Scirea,CB,,Italy,1974–1988,1974,1988,1977–1985,1977,1985,94,95,99,96,40,92.8,A,Natural,92.8,36,7 Serie A; won all three UEFA club competitions,
+Juventus,LCB,CB,Giorgio Chiellini,CB,LB,Italy,2005–2022,2005,2022,2011–2019,2011,2019,91,92,99,99,50,91.65,A,Natural,91.65,33,9 Serie A; captain,
+Juventus,LB,LB,Antonio Cabrini,LB,,Italy,1976–1989,1976,1989,1978–1985,1978,1985,88,89,97,94,40,88.3,A,Natural,88.3,27,"6 Serie A, 1985 European Cup",
+Juventus,CDM,DM,Marco Tardelli,CM/DM,,Italy,1975–1985,1975,1985,1977–1983,1977,1983,89,90,97,90,35,88.3,A,Natural,88.3,27,"5 Serie A, 1985 European Cup, 1977 UEFA Cup",
+Juventus,CM,CM,Pavel Nedvěd,CM/LM,AM,Czech Republic,2001–2009,2001,2009,2001–2005,2001,2005,94,96,85,88,98,92.4,A,Natural,92.4,35,Ballon d'Or 2003; 2002 & 2003 Serie A,
+Juventus,CAM,AM,Michel Platini,AM,,France,1982–1987,1982,1987,1983–1986,1983,1986,98,99,95,78,100,95.8,S,Natural,95.8,42,"Ballon d'Or 1983–85; 1985 European Cup, 2 Serie A",
+Juventus,RW,RW,Franco Causio,RW,,Italy,1970–1981,1970,1981,1972–1978,1972,1978,87,88,95,92,25,86.3,B,Natural,86.3,23,"6 Serie A, 1977 UEFA Cup",Natural right winger; Bettega and Baggio competed for front spots
+Juventus,ST,ST,Roberto Baggio,SS/ST,AM,Italy,1990–1995,1990,1995,1992–1994,1992,1994,96,98,82,72,100,91.6,A,Natural,91.6,33,"Ballon d'Or & FIFA World Player 1993; 1993 UEFA Cup, 1995 Serie A",Over Roberto Bettega
+Juventus,LW,LW,Alessandro Del Piero,SS/LW,,Italy,1993–2012,1993,2012,1995–1998,1995,1998,95,96,98,100,75,95.4,S,Natural,95.4,41,Club record 705 apps & 290 goals; 1996 Champions League,
+Bayern Munich,GK,GK,Manuel Neuer,GK,,Germany,2011–present,2011,2026,2012–2020,2012,2020,97,98,99,96,85,97.0,S,Natural,97.0,44,"2013 & 2020 Champions Leagues, 12+ Bundesliga titles",Over Sepp Maier and Oliver Kahn
+Bayern Munich,RB,RB,Philipp Lahm,RB/LB,DM,Germany,2002–2018,2002,2018,2008–2016,2008,2016,95,95,99,99,55,94.2,S,Natural,94.2,38,"2013 Champions League, 8 Bundesliga; captain",
+Bayern Munich,RCB,CB,Franz Beckenbauer,CB,CM,Germany,1964–1977,1964,1977,1971–1976,1971,1976,99,99,99,95,100,98.65,S,Natural,98.65,47,Ballon d'Or 1972 & 1976; 3 European Cups as captain,West Germany era
+Bayern Munich,LCB,CB,Jérôme Boateng,CB,,Germany,2011–2021,2011,2021,2013–2016,2013,2016,89,90,99,90,40,88.95,A,Natural,88.95,28,"2 Champions Leagues, 9 Bundesliga",
+Bayern Munich,LB,LB,David Alaba,LB,"CB, CM",Austria,2008–2021,2008,2021,2013–2020,2013,2020,90,91,99,92,55,90.55,A,Natural,90.55,31,"2 Champions Leagues, 10 Bundesliga",
+Bayern Munich,CDM,DM,Bastian Schweinsteiger,CM/DM,,Germany,2002–2015,2002,2015,2012–2014,2012,2014,92,93,99,95,55,92.15,A,Natural,92.15,34,"2013 Champions League, 8 Bundesliga",
+Bayern Munich,CM,CM,Paul Breitner,CM,LB,Germany,1970–1974; 1978–1983,1970,1983,1979–1981,1979,1981,92,93,90,80,75,89.85,A,Natural,89.85,30,"1974 European Cup, 5 Bundesliga; Ballon d'Or runner-up 1981",
+Bayern Munich,CAM,AM,Thomas Müller,AM/SS,RW,Germany,2008–2025,2008,2025,2013–2020,2013,2020,93,93,100,100,60,93.45,S,Natural,93.45,37,"2 Champions Leagues, 13 Bundesliga; club appearance record",
+Bayern Munich,RW,RW,Karl-Heinz Rummenigge,RW/ST,,Germany,1974–1984,1974,1984,1979–1981,1979,1981,93,95,85,88,98,91.75,A,Natural,91.75,34,Ballon d'Or 1980 & 1981; 2 European Cups,Edged Arjen Robben on individual honors
+Bayern Munich,ST,ST,Gerd Müller,ST,,Germany,1964–1979,1964,1979,1969–1975,1969,1975,99,99,99,96,100,98.75,S,Natural,98.75,48,Ballon d'Or 1970; 365 Bundesliga goals; 3 European Cups,Over Robert Lewandowski — closest call in the dataset
+Bayern Munich,LW,LW,Franck Ribéry,LW,,France,2007–2019,2007,2019,2012–2014,2012,2014,93,95,99,95,80,94.35,S,Natural,94.35,39,"2013 Champions League, 9 Bundesliga; UEFA Best Player 2013",
+Dortmund,GK,GK,Roman Weidenfeller,GK,,Germany,2002–2018,2002,2018,2010–2013,2010,2013,83,85,85,95,25,82.3,C,Natural,82.3,15,"2 Bundesliga, 2 DFB-Pokals",
+Dortmund,RB,RB,Łukasz Piszczek,RB,,Poland,2010–2021,2010,2021,2011–2017,2011,2017,85,86,85,95,25,83.3,B,Natural,83.3,17,"2 Bundesliga, 3 DFB-Pokals",
+Dortmund,RCB,CB,Mats Hummels,CB,,Germany,2008–2016; 2019–2024,2008,2024,2011–2014,2011,2014,91,92,85,92,50,88.15,A,Natural,88.15,26,"2 Bundesliga, 2 DFB-Pokals",
+Dortmund,LCB,CB,Matthias Sammer,CB,CM,Germany,1993–1998,1993,1998,1995–1997,1995,1997,93,96,92,70,100,91.75,A,Natural,91.75,34,"Ballon d'Or 1996; 1997 Champions League, 2 Bundesliga",Libero
+Dortmund,LB,LB,Marcel Schmelzer,LB,,Germany,2008–2022,2008,2022,2010–2014,2010,2014,83,84,85,95,15,81.5,C,Natural,81.5,13,2 Bundesliga; captain 2016–18,
+Dortmund,CDM,DM,Nuri Şahin,CM/DM,,Turkey,2005–2011; 2013–2018,2005,2018,2010–2011,2010,2011,84,86,75,80,40,80.2,C,Natural,80.2,10,2011 Bundesliga; Bundesliga Player of the Season 2011,
+Dortmund,CM,CM,Michael Zorc,CM,DM,Germany,1981–1998,1981,1998,1994–1997,1994,1997,84,85,90,99,25,84.05,B,Natural,84.05,18,"1997 Champions League, 2 Bundesliga; club appearance record; captain",
+Dortmund,CAM,AM,Andreas Möller,AM,,Germany,1988–1990; 1994–2000,1988,2000,1995–1997,1995,1997,90,91,92,78,40,87.0,B,Natural,87.0,24,"1997 Champions League, 2 Bundesliga",Peak club Dortmund over Juventus
+Dortmund,RW,RW,Jadon Sancho,RW,LW,England,2017–2021; 2024,2017,2024,2019–2021,2019,2021,88,90,55,65,40,77.3,C,Natural,77.3,5,2021 DFB-Pokal; 2024 Champions League finalist,
+Dortmund,ST,ST,Pierre-Emerick Aubameyang,ST,LW,Gabon,2013–2018,2013,2018,2015–2017,2015,2017,91,92,60,78,80,83.25,B,Natural,83.25,17,2017 Bundesliga top scorer & DFB-Pokal; African Player of the Year 2015,Lewandowski and Haaland peaked elsewhere
+Dortmund,LW,LW,Marco Reus,LW/AM,,Germany,2012–2024,2012,2024,2013–2016,2013,2016,90,91,65,95,60,84.3,B,Natural,84.3,19,2 DFB-Pokals; German Footballer of the Year 2012 & 2019,
+PSG,GK,GK,Gianluigi Donnarumma,GK,,Italy,2021–2025,2021,2025,2024–2025,2024,2025,90,92,90,65,60,86.6,B,Natural,86.6,23,2025 Champions League (treble),
+PSG,RB,RB,Achraf Hakimi,RB,RW,Morocco,2021–present,2021,2026,2023–2025,2023,2025,91,92,92,80,60,88.85,A,Natural,88.85,28,"2025 Champions League, multiple Ligue 1 titles",
+PSG,RCB,CB,Marquinhos,CB,DM,Brazil,2013–present,2013,2026,2016–2025,2016,2025,90,90,97,98,40,89.7,A,Natural,89.7,29,Captain of 2025 Champions League winners; club appearance record,
+PSG,LCB,CB,Thiago Silva,CB,,Brazil,2012–2020,2012,2020,2012–2017,2012,2017,94,95,90,90,55,91.15,A,Natural,91.15,32,7 Ligue 1 titles; captain,
+PSG,LB,LB,Nuno Mendes,LB,,Portugal,2021–present,2021,2026,2024–2025,2024,2025,88,91,92,75,40,86.0,B,Natural,86.0,22,2025 Champions League,
+PSG,CDM,DM,Vitinha,CM/DM,,Portugal,2022–present,2022,2026,2024–2025,2024,2025,89,92,92,72,50,86.85,B,Natural,86.85,24,2025 Champions League,
+PSG,CM,CM,Marco Verratti,CM,,Italy,2012–2023,2012,2023,2014–2019,2014,2019,91,92,90,96,40,89.05,A,Natural,89.05,28,9 Ligue 1 titles,
+PSG,CAM,AM,Raí,AM,,Brazil,1993–1998,1993,1998,1994–1996,1994,1996,87,88,82,78,35,82.8,C,Natural,82.8,16,"1994 Ligue 1, 1996 Cup Winners' Cup",
+PSG,RW,RW,Ousmane Dembélé,RW/ST,,France,2023–present,2023,2026,2024–2025,2024,2025,92,97,94,65,100,91.6,A,Natural,91.6,33,Ballon d'Or 2025; 2025 Champions League,
+PSG,ST,ST,Zlatan Ibrahimović,ST,,Sweden,2012–2016,2012,2016,2012–2016,2012,2016,94,95,85,80,75,90.15,A,Natural,90.15,30,"4 Ligue 1 titles, 156 goals; Ligue 1 Player of the Year x3",Over Cavani
+PSG,LW,LW,Kylian Mbappé,LW/ST,,France,2017–2024,2017,2024,2018–2023,2018,2023,98,98,85,90,90,94.2,S,Natural,94.2,38,Club record 256 goals; 6 Ligue 1; multiple Ligue 1 Player of the Year awards,Peak debated vs Real Madrid; PSG chosen
+Ajax,GK,GK,Heinz Stuy,GK,,Netherlands,1967–1976,1967,1976,1970–1973,1970,1973,80,82,98,85,15,81.45,C,Natural,81.45,13,3 European Cups (1971–73),Van der Sar peaked at Man United
+Ajax,RB,RB,Wim Suurbier,RB,,Netherlands,1964–1977,1964,1977,1969–1973,1969,1973,85,86,98,92,20,85.35,B,Natural,85.35,21,3 European Cups,
+Ajax,RCB,CB,Barry Hulshoff,CB,,Netherlands,1966–1977,1966,1977,1969–1973,1969,1973,86,87,98,88,20,85.6,B,Natural,85.6,21,3 European Cups,
+Ajax,LCB,CB,Danny Blind,CB,RB,Netherlands,1986–1999,1986,1999,1993–1996,1993,1996,86,87,95,94,40,86.6,B,Natural,86.6,23,Captain of 1995 Champions League winners; 5 Eredivisie,
+Ajax,LB,LB,Ruud Krol,LB/CB,,Netherlands,1968–1980,1968,1980,1970–1976,1970,1976,91,92,97,94,55,91.0,A,Natural,91.0,32,3 European Cups; later captain,
+Ajax,CDM,DM,Arie Haan,CM/DM,CB,Netherlands,1969–1975,1969,1975,1971–1973,1971,1973,86,87,96,75,25,84.15,B,Natural,84.15,18,3 European Cups,
+Ajax,CM,CM,Johan Neeskens,CM,,Netherlands,1970–1974,1970,1974,1971–1974,1971,1974,92,93,97,72,45,88.95,A,Natural,88.95,28,3 European Cups,
+Ajax,CAM,AM,Jari Litmanen,AM,,Finland,1992–1999; 2002–2004,1992,2004,1994–1996,1994,1996,92,94,95,85,60,90.9,A,Natural,90.9,32,1995 Champions League; Ballon d'Or 3rd 1995,
+Ajax,RW,RW,Sjaak Swart,RW,,Netherlands,1956–1973,1956,1973,1964–1971,1964,1971,85,86,98,100,20,86.15,B,Natural,86.15,22,'Mr. Ajax' — club appearance record; early-70s European Cups,
+Ajax,ST,ST,Johan Cruyff,ST/AM,,Netherlands,1964–1973; 1981–1983,1964,1983,1969–1973,1969,1973,100,100,100,95,100,99.5,S,Natural,99.5,49,Ballon d'Or 1971 & 1973; 3 European Cups,Peak club Ajax over Barcelona
+Ajax,LW,LW,Piet Keizer,LW,,Netherlands,1961–1974,1961,1974,1966–1973,1966,1973,90,91,98,92,30,89.1,A,Natural,89.1,28,Early-70s European Cups,
+Napoli,GK,GK,Alex Meret,GK,,Italy,2018–present,2018,2026,2022–2025,2022,2025,83,84,85,85,15,80.5,C,Natural,80.5,11,2023 & 2025 Serie A,
+Napoli,RB,RB,Giovanni Di Lorenzo,RB,CB,Italy,2019–present,2019,2026,2022–2025,2022,2025,85,86,86,88,25,82.8,C,Natural,82.8,16,Captain of 2023 & 2025 Serie A winners,
+Napoli,RCB,CB,Kalidou Koulibaly,CB,,Senegal,2014–2022,2014,2022,2017–2021,2017,2021,91,92,60,92,50,83.15,B,Natural,83.15,16,2020 Coppa Italia; Serie A Best Defender 2019,
+Napoli,LCB,CB,Giuseppe Bruscolotti,RB/CB,,Italy,1972–1988,1972,1988,1975–1987,1975,1987,82,82,85,100,20,81.3,C,Natural,81.3,13,"1987 Serie A, 2 Coppas; long-time captain",Ciro Ferrara peaked at Juventus
+Napoli,LB,LB,Mário Rui,LB,,Portugal,2018–2025,2018,2025,2021–2023,2021,2023,81,82,80,85,10,77.95,C,Natural,77.95,6,"2023 Serie A, 2020 Coppa Italia",Weakest Napoli position historically
+Napoli,CDM,DM,Antonio Juliano,CM/DM,,Italy,1962–1978,1962,1978,1966–1975,1966,1975,86,86,72,98,25,81.35,C,Natural,81.35,13,1976 Coppa Italia; captain for a decade,
+Napoli,CM,CM,Marek Hamšík,CM/AM,,Slovakia,2007–2019,2007,2019,2012–2017,2012,2017,89,90,65,99,35,82.8,C,Natural,82.8,16,Club appearance record; 2 Coppas,
+Napoli,CAM,AM,Diego Maradona,AM,,Argentina,1984–1991,1984,1991,1986–1990,1986,1990,100,100,98,85,85,97.35,S,Natural,97.35,45,"1987 & 1990 Serie A, 1989 UEFA Cup; capocannoniere 1988",
+Napoli,RW,RW,José Callejón,RW,,Spain,2013–2020,2013,2020,2014–2018,2014,2018,85,86,62,85,15,77.2,C,Natural,77.2,4,2014 & 2020 Coppa Italia,
+Napoli,ST,ST,Careca,ST,,Brazil,1987–1993,1987,1993,1988–1990,1988,1990,89,90,88,78,45,85.8,B,Natural,85.8,22,"1990 Serie A, 1989 UEFA Cup",Over Osimhen and Mertens
+Napoli,LW,LW,Lorenzo Insigne,LW,,Italy,2010–2022,2010,2022,2016–2021,2016,2021,86,87,65,95,35,80.45,C,Natural,80.45,11,2 Coppas; captain,Kvaratskhelia rated higher but peak assigned to PSG

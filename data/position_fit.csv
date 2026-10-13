@@ -1,0 +1,4 @@
+fit,multiplier,rule
+Natural,1.0,Slot family appears in natural position
+Secondary,0.93,Slot family appears in secondary positions
+Out of position,0.82,Neither

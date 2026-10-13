@@ -1,0 +1,8 @@
+link_type,points,how_to_detect
+"Clubmates (same club, overlapping years)",3,Both players' club years overlap at the same club
+International teammates,2,Same nationality AND peak windows overlap
+Iconic partnership (bonus),2,Pair appears on the Iconic Pairs sheet — stacks on top of other links
+"Same club, different era",1,"Same club, no overlapping years"
+"Same nationality, different era",1,"Same nationality, peak windows don't overlap"
+Derby rivals (penalty),-1,"Players from rival clubs on the Rivalries sheet, no other link"
+No link,0,Nothing in common

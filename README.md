@@ -1,36 +1,15 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+Perfect Season
 
-## Getting Started
+This concept is similar to undefeated xi but has its own twist. You will need to draft a super team from the greatest players in the history of 16 European giants, from the 1960s to today. Then try to survive a full league season and a Champions League-style knockout without losing a single match.
 
-First, run the development server:
+How it works
+Draft: 16 teams take turns picking in a snake draft from one shared pool of 176 legends. Once a player is taken, he's gone.
+League: a 30-match home-and-away season.
+Playoffs: the top 8 advance to two-legged quarter-finals and semi-finals, then a one-match final.
+Perfect season: win all 35 matches.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+Team strength depends on player ratings, how well each player fits his position, and chemistry: links between teammates who shared a club, a country, or a famous partnership.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Clubs
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Arsenal · Chelsea · Liverpool · Manchester City · Manchester United · Real Madrid · Atlético Madrid · Barcelona · AC Milan · Inter Milan · Juventus · Bayern Munich · Dortmund · PSG · Ajax · Napoli
