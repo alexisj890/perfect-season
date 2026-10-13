@@ -13,6 +13,7 @@ A soccer team-draft web game inspired by 82-0. Sixteen all-time club XIs (1960s�
 - `npm run dev` — start the dev server at http://localhost:3000
 - `npm run lint` — run ESLint
 - `npm test` — run the Vitest tests once (`npm run test:watch` re-runs them on every save)
+- `npm run sim -- "Barcelona" "Real Madrid" [seed] [--final]` — play two club XIs and print the match
 
 ## Data
 - `data/players.csv` — 176 players: 16 clubs × 11 slots in a 4-3-3, with ratings, positions, nationality, and years at club
@@ -27,14 +28,17 @@ A soccer team-draft web game inspired by 82-0. Sixteen all-time club XIs (1960s�
 - **Playoffs:** top 8 (1v8, 2v7, 3v6, 4v5). Quarter-finals and semi-finals are two legs; the higher seed hosts the second leg. Aggregate ties go to extra time, then penalties (no away goals). The final is one match at a neutral venue, with extra time and penalties.
 - **Perfect season:** win all 35 matches (30 league + 4 knockout legs + final).
 - **Position fit:** players may be drafted into any slot. Tiers in `position_fit.csv`: Natural, Secondary, Similar (`position_similarity.csv`), Out of position, Goalkeeper swap. Rating = `weighted_score` × the fit multiplier for the slot they're actually playing (not the CSV's `effective_rating`, which is for their original slot).
-- **Chemistry:** scored across all 55 player pairs in the XI (FIFA-style), not just neighbouring slots.
+- **Chemistry:** scored across all 55 player pairs in the XI (FIFA-style), not just neighbouring slots. It matters but isn't a huge factor: worth up to ±10% expected goals — enough to give the edge between close teams, never enough to beat a clearly better XI.
+- **Extra time and penalties:** never in league matches or first legs. A second leg goes to extra time only if the aggregate is level after 90; extra-time goals count toward the aggregate, and penalties follow only if it's still level after 120. The final goes to extra time if level after 90, then penalties. Extra time is 30 minutes, so its goal rate is a third of a full match.
+- **Penalty takers:** in order of attacking strength (rating weighted by how far forward their slot is), best first; the keeper shoots last.
 - **Home advantage:** home team's expected goals × 1.07. Neutral venue (the final): no boost for either side.
 - **Difficulty:** tune so a very strong team wins a single match about 90% of the time — a 35–0 season should be rare.
 - **End of run:** missed the top 8 → "Relegated" screen. Lost in the knockouts → "Better luck next time". Won the final → trophy and roster recap.
 - **Match animation:** the engine decides the result and a timeline of events first; the UI replays it as dots on a 2D pitch, with goals shown.
 
 ## Code rules
-- The match engine is pure TypeScript with no React or UI imports, and is covered by Vitest tests.
+- The match engine is pure TypeScript with no React or UI imports, and is covered by Vitest tests. All tuning numbers are in `lib/engine/config.ts`; the calibration tests in `lib/engine/match.test.ts` guard the difficulty.
+- All randomness goes through the seeded RNG in `lib/rng.ts` — never `Math.random()` — so runs are reproducible.
 - Formations live in data, never hard-coded.
 - Game state (draft, season, playoffs) must be serializable so a run can be saved and resumed.
 - Leave room for accounts later (nullable `user_id`), but don't build them yet.
