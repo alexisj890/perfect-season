@@ -1,10 +1,10 @@
-// Helpers for tests: build lineups from the pool by rating rank.
-// Rank 0 = best player at that slot, 15 = worst.
+// Ready-made lineups, for tests, scripts and (later) computer-drafted teams.
 
 import type { GameData } from "@/lib/data/types";
 import type { Lineup } from "./team";
 
-// `ranks` cycles across the slots, so [1, 2] alternates 2nd- and 3rd-best.
+// Each slot gets the player of the given rating rank at that slot (0 = best,
+// 15 = worst). `ranks` cycles across the slots, so [1, 2] alternates 2nd- and 3rd-best.
 export function lineupByRank(data: GameData, ranks: number[]): Lineup {
   return Object.fromEntries(
     data.formation.slots.map((slot, i) => {
@@ -16,6 +16,7 @@ export function lineupByRank(data: GameData, ranks: number[]): Lineup {
   );
 }
 
+// A club's all-time XI, every player in their home slot.
 export function clubLineup(data: GameData, club: string): Lineup {
   return Object.fromEntries(
     data.players.filter((p) => p.club === club).map((p) => [p.homeSlot, p.id]),

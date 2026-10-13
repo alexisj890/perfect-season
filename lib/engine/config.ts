@@ -25,8 +25,31 @@ export const ENGINE = {
   // …reached when the team's total chemistry (all 55 pairs) hits this many points.
   // Typical mixed drafts total about 5–20; a draft built for chemistry can reach 40.
   chemistryForMaxEffect: 40,
-  // Share of goals that have an assist.
+  // Share of open-play goals that have an assist.
   assistChance: 0.8,
+  // Where chances come from. `goalShare`: share of all goals from this source.
+  // `conversion`: share of attempts from this source that go in. Together these
+  // give ≈12 shots per team per match, close to real football.
+  chanceSources: {
+    "open play": { goalShare: 0.8, conversion: 0.1 },
+    corner: { goalShare: 0.1, conversion: 0.07 },
+    "free kick": { goalShare: 0.04, conversion: 0.07 },
+    penalty: { goalShare: 0.06, conversion: 0.78 },
+  },
+  // Corners that don't lead to a shot, per expected goal (≈5 corners per team in total).
+  extraCornersPerExpectedGoal: 2.5,
+  // How a shot that doesn't go in ends up.
+  missOutcomes: { saved: 0.37, post: 0.05, wide: 0.58 },
+  penaltyMissOutcomes: { saved: 0.7, post: 0.1, wide: 0.2 },
+  // Corners are taken by the best-rated player whose slot sits in this attack-weight
+  // band (100 − pitch_y): central and attacking midfielders and wingers.
+  cornerTakerBand: { min: 40, max: 85 },
+  // Stoppage time added to each half, in whole minutes [min, max].
+  stoppageTime: {
+    firstHalf: [1, 4],
+    secondHalf: [2, 7],
+    extraTimeHalf: [0, 2],
+  },
   // Penalty conversion for an average taker against an average keeper,
   // and how much each rating point of taker-over-keeper changes it.
   penaltyBaseChance: 0.76,

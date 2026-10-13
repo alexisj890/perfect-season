@@ -34,14 +34,20 @@ A soccer team-draft web game inspired by 82-0. Sixteen all-time club XIs (1960s�
 - **Home advantage:** home team's expected goals × 1.07. Neutral venue (the final): no boost for either side.
 - **Difficulty:** tune so a very strong team wins a single match about 90% of the time — a 35–0 season should be rare.
 - **End of run:** missed the top 8 → "Relegated" screen. Lost in the knockouts → "Better luck next time". Won the final → trophy and roster recap.
-- **Match animation:** the engine decides the result and a timeline of events first; the UI replays it as dots on a 2D pitch, with goals shown.
+- **Match events:** the engine produces a timeline of shots (goal, saved, post, wide), corners, direct free kicks and in-match penalties, with scorers and assisters. Penalties and direct free kicks go to the most attacking player; corners to the best midfielder/winger. Each half has random stoppage time, shown as 90+3'.
+- **Match animation:** the engine decides the result and the event timeline first; the UI replays it as dots on a 2D pitch.
 
 ## Code rules
 - The match engine is pure TypeScript with no React or UI imports, and is covered by Vitest tests. All tuning numbers are in `lib/engine/config.ts`; the calibration tests in `lib/engine/match.test.ts` guard the difficulty.
 - All randomness goes through the seeded RNG in `lib/rng.ts` — never `Math.random()` — so runs are reproducible.
 - Formations live in data, never hard-coded.
 - Game state (draft, season, playoffs) must be serializable so a run can be saved and resumed.
+- Saves store match results, never just a seed to replay: any engine change alters what a seed produces, so replaying would rewrite past results.
 - Leave room for accounts later (nullable `user_id`), but don't build them yet.
+
+## Ideas parked for later
+- Form, fatigue, injuries and red cards (left out for now: more complexity, and they make a perfect season more about luck).
+- A script estimating perfect-season odds, once season and playoffs exist.
 
 ## How to work with me
 - I'm new to Next.js. Explain what you're changing and why in plain language.

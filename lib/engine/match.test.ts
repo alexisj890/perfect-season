@@ -2,9 +2,22 @@ import { describe, expect, it } from "vitest";
 import { loadGameData } from "@/lib/data/load";
 import { createRng } from "@/lib/rng";
 import { ENGINE } from "./config";
-import { expectedGoals, simulateMatch, takerOrder, type MatchResult, type MatchType } from "./match";
+import {
+  cornerTaker,
+  expectedGoals,
+  formatClock,
+  goalsOf,
+  matchStats,
+  setPieceTaker,
+  simulateMatch,
+  takerOrder,
+  type MatchEvent,
+  type MatchResult,
+  type MatchType,
+  type ShotEvent,
+} from "./match";
 import { buildTeam, type TeamProfile } from "./team";
-import { lineupByRank } from "./testTeams";
+import { lineupByRank } from "./lineups";
 
 const data = loadGameData();
 const strong = buildTeam(lineupByRank(data, [1, 2]), data);
@@ -39,8 +52,10 @@ function many(type: MatchType, n: number, seed = 99): MatchResult[] {
   return Array.from({ length: n }, () => simulateMatch(average, average2, rng, type));
 }
 
-const regulation = (r: MatchResult) => r.goals.filter((g) => g.minute <= 90);
-const goalsFor = (goals: MatchResult["goals"], side: string) => goals.filter((g) => g.side === side).length;
+// Goals in the first 90 minutes (stoppage time included: 90+4' has minute 90).
+const regulation = (r: MatchResult) => goalsOf(r).filter((g) => g.minute <= 90);
+const goalsFor = (goals: ShotEvent[], side: string) => goals.filter((g) => g.side === side).length;
+const shotsOf = (r: MatchResult) => r.events.filter((e): e is ShotEvent => e.type === "shot");
 
 describe("simulateMatch: basics", () => {
   it("gives the same result for the same seed", () => {
@@ -49,23 +64,25 @@ describe("simulateMatch: basics", () => {
     );
   });
 
-  it("produces a goal timeline that matches the score", () => {
+  it("produces a timeline that matches the score", () => {
     const rng = createRng(3);
-    const homeIds = idsOf(strong);
-    const awayIds = idsOf(average);
+    const ids = { home: idsOf(strong), away: idsOf(average) };
     for (let i = 0; i < 500; i++) {
       const r = simulateMatch(strong, average, rng);
-      expect(r.goals.filter((g) => g.side === "home")).toHaveLength(r.homeGoals);
-      expect(r.goals.filter((g) => g.side === "away")).toHaveLength(r.awayGoals);
-      expect(r.goals.map((g) => g.minute)).toEqual([...r.goals.map((g) => g.minute)].sort((a, b) => a - b));
-      for (const g of r.goals) {
-        expect(g.minute).toBeGreaterThanOrEqual(1);
-        expect(g.minute).toBeLessThanOrEqual(90);
-        const own = g.side === "home" ? homeIds : awayIds;
-        expect(own.has(g.scorerId)).toBe(true);
-        if (g.assistId) {
-          expect(own.has(g.assistId)).toBe(true);
-          expect(g.assistId).not.toBe(g.scorerId);
+      const goals = goalsOf(r);
+      expect(goalsFor(goals, "home")).toBe(r.homeGoals);
+      expect(goalsFor(goals, "away")).toBe(r.awayGoals);
+      for (const e of r.events) {
+        const own = ids[e.side];
+        if (e.type === "corner") {
+          expect(own.has(e.takerId)).toBe(true);
+          continue;
+        }
+        expect(own.has(e.shooterId)).toBe(true);
+        if (e.assistId) {
+          expect(e.outcome).toBe("goal");
+          expect(own.has(e.assistId)).toBe(true);
+          expect(e.assistId).not.toBe(e.shooterId);
         }
       }
     }
@@ -81,14 +98,14 @@ describe("simulateMatch: basics", () => {
     }
   });
 
-  it("lets forwards score far more than centre-backs", () => {
+  it("lets forwards score far more than centre-backs in open play", () => {
     const rng = createRng(8);
     const bySlot: Record<string, number> = {};
     const slotOf = new Map(strong.players.map((p) => [p.player.id, p.slot]));
     for (let i = 0; i < 2000; i++) {
-      for (const g of simulateMatch(strong, average, rng).goals) {
-        if (g.side === "home") {
-          const slot = slotOf.get(g.scorerId)!;
+      for (const g of goalsOf(simulateMatch(strong, average, rng))) {
+        if (g.side === "home" && g.source === "open play") {
+          const slot = slotOf.get(g.shooterId)!;
           bySlot[slot] = (bySlot[slot] ?? 0) + 1;
         }
       }
@@ -138,7 +155,8 @@ describe("simulateMatch: which matches get extra time", () => {
         expect(r.extraTime).toBe(false);
         expect(r.shootout).toBeNull();
         expect(r.aggregate).toBeNull();
-        expect(r.goals.every((g) => g.minute <= 90)).toBe(true);
+        expect(r.events.every((e) => e.minute <= 90)).toBe(true);
+        expect(r.stoppageTime.extraTimeFirstHalf).toBeNull();
       }
     }
   });
@@ -172,17 +190,17 @@ describe("simulateMatch: which matches get extra time", () => {
       expect(r.aggregate).toBeNull();
       expect(r.extraTime).toBe(goalsFor(regulation(r), "home") === goalsFor(regulation(r), "away"));
       expect(r.shootout !== null).toBe(r.extraTime && r.homeGoals === r.awayGoals);
-      for (const g of r.goals) expect(g.minute).toBeLessThanOrEqual(120);
+      for (const e of r.events) expect(e.minute).toBeLessThanOrEqual(120);
     }
     expect(results.some((r) => r.shootout)).toBe(true);
   });
 
   it("scores about a third as many goals in extra time as in 90 minutes", () => {
     const withExtraTime = many({ kind: "final" }, 20_000).filter((r) => r.extraTime);
-    const inExtra = withExtraTime.reduce((n, r) => n + r.goals.length - regulation(r).length, 0);
+    const inExtra = withExtraTime.reduce((n, r) => n + goalsOf(r).length - regulation(r).length, 0);
     // Matches that reach extra time were lower-scoring than usual in their first 90
     // minutes, so compare against the overall 90-minute rate instead.
-    const all90 = many({ kind: "league" }, 20_000, 98).reduce((n, r) => n + r.goals.length, 0) / 20_000;
+    const all90 = many({ kind: "league" }, 20_000, 98).reduce((n, r) => n + goalsOf(r).length, 0) / 20_000;
     expect(inExtra / withExtraTime.length / all90).toBeCloseTo(1 / 3, 1);
   });
 });
@@ -211,7 +229,7 @@ describe("simulateMatch: penalty shootouts", () => {
     expect(shootouts.length).toBeGreaterThan(0);
     for (const r of shootouts) {
       const s = r.shootout!;
-      const scored = (side: string) => s.kicks.filter((k) => k.side === side && k.scored).length;
+      const scored = (side: string) => s.kicks.filter((k) => k.side === side && k.outcome === "goal").length;
       expect(s.home).toBe(scored("home"));
       expect(s.away).toBe(scored("away"));
       expect(s.home).not.toBe(s.away);
@@ -229,7 +247,7 @@ describe("simulateMatch: penalty shootouts", () => {
       const taken = { home: 0, away: 0 };
       kicks.forEach((kick, i) => {
         taken[kick.side]++;
-        if (kick.scored) score[kick.side]++;
+        if (kick.outcome === "goal") score[kick.side]++;
         const isLast = i === kicks.length - 1;
         const inFirstFive = taken.home <= 5 && taken.away <= 5;
         const decided = inFirstFive
@@ -238,6 +256,121 @@ describe("simulateMatch: penalty shootouts", () => {
         expect(decided, `kick ${i + 1} of ${kicks.length}`).toBe(isLast);
       });
     }
+  });
+});
+
+describe("simulateMatch: stoppage time", () => {
+  const results = many({ kind: "final" }, 3000, 31);
+  const { firstHalf, secondHalf, extraTimeHalf } = ENGINE.stoppageTime;
+
+  it("adds stoppage time to each half within the configured range", () => {
+    for (const r of results) {
+      const st = r.stoppageTime;
+      expect(st.firstHalf).toBeGreaterThanOrEqual(firstHalf[0]);
+      expect(st.firstHalf).toBeLessThanOrEqual(firstHalf[1]);
+      expect(st.secondHalf).toBeGreaterThanOrEqual(secondHalf[0]);
+      expect(st.secondHalf).toBeLessThanOrEqual(secondHalf[1]);
+      expect(st.extraTimeFirstHalf !== null).toBe(r.extraTime);
+      if (r.extraTime) expect(st.extraTimeSecondHalf!).toBeLessThanOrEqual(extraTimeHalf[1]);
+    }
+  });
+
+  it("only puts events in stoppage time at the end of a half, and never beyond it", () => {
+    const ends: Record<number, (r: MatchResult) => number | null> = {
+      45: (r) => r.stoppageTime.firstHalf,
+      90: (r) => r.stoppageTime.secondHalf,
+      105: (r) => r.stoppageTime.extraTimeFirstHalf,
+      120: (r) => r.stoppageTime.extraTimeSecondHalf,
+    };
+    let stoppageGoals = 0;
+    for (const r of results) {
+      for (const e of r.events) {
+        if (e.addedTime === 0) continue;
+        expect(Object.keys(ends).map(Number)).toContain(e.minute);
+        expect(e.addedTime).toBeLessThanOrEqual(ends[e.minute](r)!);
+        if (e.type === "shot" && e.outcome === "goal") stoppageGoals++;
+      }
+    }
+    expect(stoppageGoals).toBeGreaterThan(0);
+  });
+
+  it("keeps events in time order, with 45+3' before 46'", () => {
+    const order = (e: MatchEvent) => e.minute + e.addedTime / 100;
+    for (const r of results) {
+      const times = r.events.map(order);
+      expect(times).toEqual([...times].sort((a, b) => a - b));
+    }
+  });
+
+  it("formats the clock like a scoreboard", () => {
+    expect(formatClock({ minute: 23, addedTime: 0 })).toBe("23'");
+    expect(formatClock({ minute: 90, addedTime: 3 })).toBe("90+3'");
+  });
+});
+
+describe("simulateMatch: shots, corners and set pieces", () => {
+  const rng = createRng(17);
+  const results = Array.from({ length: 4000 }, () => simulateMatch(average, average2, rng));
+  const shots = results.flatMap(shotsOf).filter((s) => s.side === "home");
+  const perMatch = (n: number) => n / results.length;
+
+  it("produces realistic match stats", () => {
+    const stats = results.map((r) => matchStats(r).home);
+    const avg = (pick: (s: (typeof stats)[number]) => number) => stats.reduce((n, s) => n + pick(s), 0) / stats.length;
+    expect(avg((s) => s.shots)).toBeGreaterThan(9);
+    expect(avg((s) => s.shots)).toBeLessThan(16);
+    expect(avg((s) => s.shotsOnTarget) / avg((s) => s.shots)).toBeGreaterThan(0.3);
+    expect(avg((s) => s.shotsOnTarget) / avg((s) => s.shots)).toBeLessThan(0.5);
+    expect(avg((s) => s.corners)).toBeGreaterThan(3);
+    expect(avg((s) => s.corners)).toBeLessThan(7);
+    expect(avg((s) => s.woodwork)).toBeLessThan(1);
+    expect(avg((s) => s.goals)).toBeCloseTo(avg((s) => s.shots) * 0.1, 0);
+  });
+
+  it("has every outcome and source happen", () => {
+    for (const outcome of ["goal", "saved", "post", "wide"]) expect(shots.some((s) => s.outcome === outcome)).toBe(true);
+    for (const source of ["open play", "corner", "free kick", "penalty"]) {
+      expect(shots.some((s) => s.source === source && s.outcome === "goal"), source).toBe(true);
+    }
+    const penalties = shots.filter((s) => s.source === "penalty");
+    expect(perMatch(penalties.length)).toBeGreaterThan(0.05);
+    expect(perMatch(penalties.length)).toBeLessThan(0.3);
+    expect(penalties.filter((s) => s.outcome === "goal").length / penalties.length).toBeCloseTo(0.78, 1);
+  });
+
+  it("gives penalties and direct free kicks to the most attacking player, unassisted", () => {
+    const taker = setPieceTaker(average).player.id;
+    expect(taker).toBe(takerOrder(average)[0].player.id);
+    for (const s of shots.filter((s) => s.source === "penalty" || s.source === "free kick")) {
+      expect(s.shooterId).toBe(taker);
+      expect(s.assistId).toBeNull();
+    }
+  });
+
+  it("credits the corner taker with corner assists, and every corner shot follows a corner", () => {
+    const taker = cornerTaker(average).player.id;
+    const takerSlot = average.players.find((p) => p.player.id === taker)!.slot;
+    expect(["CM", "CAM", "RW", "LW"]).toContain(takerSlot);
+    for (const r of results) {
+      r.events.forEach((e, i) => {
+        if (e.type !== "shot" || e.side !== "home" || e.source !== "corner") return;
+        const before = r.events[i - 1];
+        expect(before).toMatchObject({ type: "corner", side: "home", minute: e.minute, addedTime: e.addedTime, takerId: taker });
+        expect(e.shooterId).not.toBe(taker);
+        if (e.outcome === "goal") expect(e.assistId).toBe(taker);
+      });
+    }
+  });
+
+  it("lets centre-backs score headers from corners but keepers never", () => {
+    const slotOf = new Map(average.players.map((p) => [p.player.id, p.slot]));
+    const headerScorers = shots.filter((s) => s.source === "corner").map((s) => slotOf.get(s.shooterId));
+    expect(headerScorers).toContain("RCB");
+    expect(headerScorers).not.toContain("GK");
+  });
+
+  it("only assists goals", () => {
+    for (const s of shots) if (s.outcome !== "goal") expect(s.assistId).toBeNull();
   });
 });
 

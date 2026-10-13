@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { loadGameData } from "@/lib/data/load";
 import { ENGINE } from "./config";
 import { buildTeam } from "./team";
-import { clubLineup, lineupByRank } from "./testTeams";
+import { clubLineup, lineupByRank } from "./lineups";
 
 const data = loadGameData();
 
