@@ -1,27 +1,32 @@
 // Every tuning number for the match engine lives here.
 //
-// Calibrated (20,000 simulated matches each, home and away alternating) so that:
-//   very strong XI (2nd–3rd best at each slot) vs average XI (8th–9th best): ~90% wins
-//   two average XIs: ~2.9 goals per game, ~24% draws
-//   elite XI (best at every slot) vs very strong XI: ~71% wins
-//   two evenly matched XIs, one with full chemistry: ~+6 points of win rate —
-//     an edge between close teams, never enough to beat a clearly better XI
-// The calibration test in match.test.ts fails if a change moves these too far.
+// Calibrated together with the draft difficulties (lib/draft/config.ts) using
+// `npm run odds`, so that a strong draft goes 35–0 (extra-time and shootout
+// wins count; a tie won on aggregate counts as two wins) about 9% of the time
+// on Easy, 2.5% on Normal and 0.3% on Hard, while a weak draft essentially never does.
+// Match-level checks (20,000 simulated matches each, home and away alternating):
+//   good XI (5th–6th best at each slot) vs average XI (8th–9th best): ~86% wins
+//   two average XIs: ~3.0 goals per game, ~24% draws
+//   average XI vs weak XI (14th–15th best): ~97% wins, ~3% draws, ~4 goals per game
+// The calibration tests in match.test.ts fail if a change moves these too far.
 
 export const ENGINE = {
   // Goals each side expects in 90 minutes when both teams are average.
-  baseGoals: 1.2,
+  baseGoals: 1.05,
   // How strongly a rating gap changes expected goals. Each rating point of
   // attack-over-defence multiplies expected goals by about e^ratingSensitivity.
-  ratingSensitivity: 0.24,
-  // Rating gaps (in points) beyond roughly this size stop adding much.
-  ratingGapCap: 6,
+  ratingSensitivity: 0.45,
+  // Rating gaps (in points) beyond roughly these sizes stop adding much. A weak
+  // attack keeps being shut down by a much better defence (so mismatches are
+  // decisive), but a strong attack's goals level off sooner (so they end 3–0, not 9–0).
+  ratingGapCapUp: 3,
+  ratingGapCapDown: 8,
   // Home team's expected goals are multiplied by this. Neutral venues use 1.
   homeAdvantage: 1.07,
   // Extra time length. Goal rates scale with it: 30 minutes ≈ a third of a match.
   extraTimeMinutes: 30,
   // Chemistry can change a team's expected goals by at most ± this fraction…
-  chemistryMaxEffect: 0.1,
+  chemistryMaxEffect: 0.15,
   // …reached when the team's total chemistry (all 55 pairs) hits this many points.
   // Typical mixed drafts total about 5–20; a draft built for chemistry can reach 40.
   chemistryForMaxEffect: 40,

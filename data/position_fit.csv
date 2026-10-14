@@ -1,6 +1,6 @@
 fit,multiplier,rule
 Natural,1.0,Slot family appears in natural position
-Secondary,0.93,Slot family appears in secondary positions
-Similar,0.88,Slot family is listed as similar to one of the player's natural or secondary positions (position_similarity.csv)
-Out of position,0.82,Neither
-Goalkeeper swap,0.5,An outfield player in goal or a goalkeeper in an outfield slot
+Secondary,0.9,Slot family appears in secondary positions
+Similar,0.85,Slot family is listed as similar to one of the player's natural or secondary positions (position_similarity.csv)
+Out of position,0.75,Neither
+Goalkeeper swap,0.4,An outfield player in goal or a goalkeeper in an outfield slot

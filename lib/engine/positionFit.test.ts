@@ -35,7 +35,8 @@ describe("positionFit", () => {
 
   it("uses weightedScore, not the CSV's effective_rating", () => {
     // Shevchenko's CSV effective_rating is 75.97 (as a LW). At ST he is natural.
+    const similar = data.fitTiers.find((t) => t.fit === "Similar")!.multiplier;
     expect(slotRating(player("andriy-shevchenko"), slot("ST"), data)).toBe(92.65);
-    expect(slotRating(player("andriy-shevchenko"), slot("LW"), data)).toBeCloseTo(92.65 * 0.88);
+    expect(slotRating(player("andriy-shevchenko"), slot("LW"), data)).toBeCloseTo(92.65 * similar);
   });
 });

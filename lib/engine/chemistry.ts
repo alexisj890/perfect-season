@@ -71,3 +71,21 @@ export function teamChemistry(players: Player[], data: GameData): number {
   }
   return total;
 }
+
+// Cached pair points, for code that asks the same question many times (the draft).
+const pairCache = new WeakMap<GameData, Map<string, number>>();
+
+export function pairPoints(a: Player, b: Player, data: GameData): number {
+  let cache = pairCache.get(data);
+  if (!cache) {
+    cache = new Map();
+    pairCache.set(data, cache);
+  }
+  const key = a.id < b.id ? `${a.id}|${b.id}` : `${b.id}|${a.id}`;
+  let points = cache.get(key);
+  if (points === undefined) {
+    points = pairChemistry(a, b, data).points;
+    cache.set(key, points);
+  }
+  return points;
+}

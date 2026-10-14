@@ -310,7 +310,8 @@ describe("simulateMatch: stoppage time", () => {
 
 describe("simulateMatch: shots, corners and set pieces", () => {
   const rng = createRng(17);
-  const results = Array.from({ length: 4000 }, () => simulateMatch(average, average2, rng));
+  // Identical teams, so the numbers reflect a typical even match.
+  const results = Array.from({ length: 4000 }, () => simulateMatch(average, average, rng));
   const shots = results.flatMap(shotsOf).filter((s) => s.side === "home");
   const perMatch = (n: number) => n / results.length;
 
@@ -392,17 +393,28 @@ describe("chemistry", () => {
 });
 
 describe("calibration (see lib/engine/config.ts)", () => {
-  it("lets a very strong XI beat an average XI about 90% of the time", () => {
-    const { winRate } = record(strong, average, 20_000);
-    expect(winRate).toBeGreaterThan(0.86);
-    expect(winRate).toBeLessThan(0.94);
+  const good = buildTeam(lineupByRank(data, [4, 5]), data);
+  const weak = buildTeam(lineupByRank(data, [13, 14]), data);
+
+  it("lets a good XI beat an average XI most of the time", () => {
+    const { winRate } = record(good, average, 20_000);
+    expect(winRate).toBeGreaterThan(0.82);
+    expect(winRate).toBeLessThan(0.9);
   });
 
-  it("keeps scorelines realistic between average teams", () => {
+  it("keeps scorelines realistic between evenly matched teams", () => {
     const { goalsPerGame, drawRate } = record(average, average2, 20_000);
     expect(goalsPerGame).toBeGreaterThan(2.5);
     expect(goalsPerGame).toBeLessThan(3.3);
     expect(drawRate).toBeGreaterThan(0.18);
     expect(drawRate).toBeLessThan(0.32);
+  });
+
+  it("makes mismatches decisive, with few draws but no absurd scorelines", () => {
+    const { winRate, drawRate, goalsPerGame } = record(average, weak, 20_000);
+    expect(winRate).toBeGreaterThan(0.95);
+    expect(drawRate).toBeLessThan(0.04);
+    expect(goalsPerGame).toBeLessThan(5);
+    expect(record(strong, weak, 20_000).goalsPerGame).toBeLessThan(5);
   });
 });

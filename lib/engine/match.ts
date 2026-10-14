@@ -86,10 +86,11 @@ export function expectedGoals(attacker: TeamProfile, defender: TeamProfile, venu
   );
 }
 
-// Rating gaps count fully when small, but level off beyond ENGINE.ratingGapCap,
-// so a huge mismatch is a comfortable win rather than a 12–0.
+// Rating gaps count fully when small, but level off beyond the caps, so a
+// huge mismatch is a comfortable win rather than a 12–0.
 function softCap(gap: number): number {
-  return ENGINE.ratingGapCap * Math.tanh(gap / ENGINE.ratingGapCap);
+  const cap = gap >= 0 ? ENGINE.ratingGapCapUp : ENGINE.ratingGapCapDown;
+  return cap * Math.tanh(gap / cap);
 }
 
 export function simulateMatch(
