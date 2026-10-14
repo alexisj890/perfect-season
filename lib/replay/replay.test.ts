@@ -49,7 +49,7 @@ describe("buildReplay", () => {
   it("feeds every shot, with a running score that ends on the real score", () => {
     for (const { result, script } of scripts) {
       const shots = result.events.filter((e) => e.type === "shot");
-      expect(script.feed).toHaveLength(shots.length);
+      expect(script.feed.filter((f) => f.kind !== "corner")).toHaveLength(shots.length);
       const last = script.feed.at(-1);
       expect(last ? last.score : { home: 0, away: 0 }).toEqual({ home: result.homeGoals, away: result.awayGoals });
       expect(script.feed.filter((f) => f.kind === "goal")).toHaveLength(goalsOf(result).length);
@@ -232,5 +232,64 @@ describe("replay smoothness (no teleporting)", () => {
     const t = advance(script, fast.to - 1, 1);
     expect(t).toBeGreaterThan(fast.to);
     expect(t - fast.to).toBeLessThanOrEqual(slow.rate);
+  });
+});
+
+describe("set pieces and winning the ball", () => {
+  it("only gives a corner after the ball goes out off a defender", () => {
+    let won = 0;
+    for (const { script } of scripts) {
+      for (const f of script.feed.filter((x) => x.kind === "corner")) {
+        won++;
+        // The last touch before the ball went out was a defender's.
+        const out = script.waypoints.findIndex((w) => Math.abs(w.t - f.t) < 0.01);
+        const lastTouch = script.waypoints[out - 1].target;
+        if (lastTouch.kind !== "player") throw new Error("a corner must come off a player");
+        expect(lastTouch.side).not.toBe(f.side);
+        const blocker = script.players.find((p) => p.side === lastTouch.side && p.index === lastTouch.index)!;
+        expect(f.blockerId).toBe(blocker.playerId);
+        const ball = ballPosition(script, f.t + 0.05);
+        expect(ball.x < 0 || ball.x > PITCH_LENGTH).toBe(true);
+      }
+    }
+    expect(won).toBeGreaterThan(10);
+  });
+
+  it("takes every corner from the corner flag, usually after the ball goes out of play", () => {
+    let corners = 0;
+    let clearedFirst = 0;
+    for (const { script } of scripts) {
+      for (const f of script.feed.filter((x) => x.kind !== "corner" && x.shot.source === "corner")) {
+        corners++;
+        const placed = ballPosition(script, f.t - 3);
+        const flags = [0.6, PITCH_LENGTH - 0.6].flatMap((x) => [0.6, PITCH_WIDTH - 0.6].map((y) => ({ x, y })));
+        expect(Math.min(...flags.map((q) => Math.hypot(placed.x - q.x, placed.y - q.y)))).toBeLessThan(1);
+        const before = ballPosition(script, f.t - 7);
+        if (before.x < 0 || before.x > PITCH_LENGTH) clearedFirst++;
+      }
+    }
+    expect(corners).toBeGreaterThan(10);
+    expect(clearedFirst / corners).toBeGreaterThan(0.8);
+  });
+
+  it("wins the ball with tackles and interceptions, not passes to the other team", () => {
+    const moves: number[] = [];
+    for (const { script } of scripts.slice(0, 20)) {
+      const w = script.waypoints;
+      for (let k = 1; k < w.length; k++) {
+        const a = w[k - 1].target;
+        const b = w[k].target;
+        if (a.kind !== "player" || b.kind !== "player" || a.side === b.side) continue;
+        if (script.feed.some((f) => w[k].t - f.t > 0 && w[k].t - f.t < 15)) continue; // restarts after a shot
+        const leave = w[k].t - Math.min(w[k].travel, w[k].t - w[k - 1].t - 0.05);
+        const from = ballPosition(script, leave);
+        const to = ballPosition(script, w[k].t);
+        moves.push(Math.hypot(to.x - from.x, to.y - from.y));
+      }
+    }
+    moves.sort((x, y) => x - y);
+    expect(moves.length).toBeGreaterThan(50);
+    expect(moves[Math.floor(moves.length / 2)]).toBeLessThan(6); // most changes are tackles: the ball barely moves
+    expect(moves.at(-1)!).toBeLessThan(40); // interceptions cut a pass out early
   });
 });

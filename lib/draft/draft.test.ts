@@ -182,8 +182,9 @@ describe("computer picks", () => {
 
   it("varies a little between drafts but repeats exactly for the same seed", () => {
     expect(autoDraft(createDraft(data, 4), data)).toEqual(autoDraft(createDraft(data, 4), data));
+    // Only the first two picks matter here, so make just those (not 40 whole drafts).
     const firstPicks = new Set(
-      Array.from({ length: 40 }, (_, seed) => autoDraft(createDraft(data, seed), data).picks[1].playerId),
+      Array.from({ length: 40 }, (_, seed) => pickOnce(pickOnce(createDraft(data, seed), data), data).picks[1].playerId),
     );
     expect(firstPicks.size).toBeGreaterThan(1);
   });

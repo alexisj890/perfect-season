@@ -238,20 +238,24 @@ function goalBanner(goal: FeedItem, playersById: Map<string, Player>): string {
 function feedText(f: FeedItem, playersById: Map<string, Player>, keeperOf: Record<Side, string>): string {
   const name = (id: string | null) => (id ? (playersById.get(id)?.name ?? id) : "");
   const shooter = name(f.shot.shooterId);
+  const fromSetPiece = f.shot.source === "corner" ? " from a corner" : f.shot.source === "free kick" ? " from a free kick" : "";
+  const heads = f.shot.source === "corner";
   switch (f.kind) {
+    case "corner":
+      return `⚑ Corner — ${name(f.attackerId ?? null)}'s effort blocked behind by ${name(f.blockerId ?? null)}`;
     case "goal": {
-      const how = f.shot.source === "penalty" ? " (pen)" : f.shot.source === "free kick" ? " (free kick)" : "";
+      const how = f.shot.source === "penalty" ? " (pen)" : f.shot.source === "free kick" ? " (free kick)" : heads ? " (header from a corner)" : "";
       const assist = f.shot.assistId ? ` · assist ${name(f.shot.assistId)}` : "";
       return `⚽ ${shooter}${how}${assist}`;
     }
     case "save":
-      return `🧤 ${name(keeperOf[f.side === "home" ? "away" : "home"])} saves from ${shooter}`;
+      return `🧤 ${name(keeperOf[f.side === "home" ? "away" : "home"])} saves ${heads ? "a header " : ""}from ${shooter}${fromSetPiece}`;
     case "post":
-      return `🥅 ${shooter} hits the woodwork`;
+      return `🥅 ${shooter} ${heads ? "heads against" : "hits"} the woodwork${fromSetPiece}`;
     case "missed-penalty":
       return `✗ ${shooter} misses a penalty`;
     case "wide":
-      return `↗ ${shooter} shoots wide`;
+      return `↗ ${shooter} ${heads ? "heads" : "shoots"} wide${fromSetPiece}`;
   }
 }
 
