@@ -94,7 +94,7 @@ describe("buildReplay", () => {
 
   it("pushes the side with the ball forward", () => {
     const { script } = scripts[3];
-    const span = script.possession.find((s) => s.push === 1 && s.side === "home")!;
+    const span = script.possession.find((s) => s.push === 1 && s.side === "home" && s.to - s.from >= 13)!;
     const striker = script.players.find((p) => p.side === "home" && p.slot === "ST")!;
     expect(playerPosition(script, striker, span.to - 0.5).x).toBeGreaterThan(striker.baseX + 8);
   });

@@ -13,8 +13,9 @@ import { formatClock, type MatchResult, type Side } from "@/lib/engine/match";
 import type { MatchRatings } from "@/lib/engine/ratings";
 import { ballPosition, clockAt, playerPosition, type FeedItem, type ReplayScript } from "@/lib/replay/replay";
 
-// Match seconds per real second at 1× — a 90-minute match takes about 90 seconds.
-export const BASE_SPEED = 60;
+// Match seconds per real second at 1× — a 90-minute match takes about 3 minutes
+// (2× about 90 seconds, 4× about 45).
+export const BASE_SPEED = 30;
 const SPEEDS = [1, 2, 4] as const;
 const GOAL_PAUSE_MS = 1800;
 const HALF_TIME_PAUSE_MS = 1500;

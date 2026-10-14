@@ -85,7 +85,10 @@ export function basePosition(pitchX: number, pitchY: number, side: Side): { x: n
 
 const ATTACK_DIRECTION: Record<Side, number> = { home: 1, away: -1 };
 const PUSH_METRES = 17; // how far a side moves up at full push
-const RAMP_SECONDS = 4; // how long a side takes to push up or drop back
+// Times below are in match seconds; at 1× a match second lasts 1/30 of a real
+// second, so movements are timed long enough to look smooth when played back.
+const RAMP_SECONDS = 12; // how long a side takes to push up or drop back
+const PASS_TRAVEL_SECONDS = 4; // how long a pass (or shot) is in the air, at most
 
 // How far `side` is pushed forward at time t (−0.6 … 1).
 export function pushAt(script: ReplayScript, side: Side, t: number): number {
@@ -102,8 +105,9 @@ export function pushAt(script: ReplayScript, side: Side, t: number): number {
 export function playerPosition(script: ReplayScript, player: ReplayPlayer, t: number): { x: number; y: number } {
   const push = pushAt(script, player.side, t) * (player.isKeeper ? 0.25 : 1);
   const drift = player.isKeeper ? 0.6 : 1.8;
-  const x = player.baseX + ATTACK_DIRECTION[player.side] * push * PUSH_METRES + Math.sin(t * 0.5 + player.phase) * drift;
-  const y = player.baseY + Math.cos(t * 0.37 + player.phase * 1.7) * drift;
+  // A gentle sway (one cycle every couple of match minutes) so players don't jitter.
+  const x = player.baseX + ATTACK_DIRECTION[player.side] * push * PUSH_METRES + Math.sin(t * 0.05 + player.phase) * drift;
+  const y = player.baseY + Math.cos(t * 0.037 + player.phase * 1.7) * drift;
   return { x: clamp(x, 1, PITCH_LENGTH - 1), y: clamp(y, 1, PITCH_WIDTH - 1) };
 }
 
@@ -122,7 +126,7 @@ export function ballPosition(script: ReplayScript, t: number): { x: number; y: n
       // The ball stays with whoever has it (a player carries it; a ball in the
       // net stays there), then travels in the last moment before the next
       // waypoint — so a shot arrives exactly when the event happens.
-      const travel = Math.min(1.4, w[i + 1].t - w[i].t);
+      const travel = Math.min(PASS_TRAVEL_SECONDS, w[i + 1].t - w[i].t);
       const leave = w[i + 1].t - travel;
       if (t < leave) return resolve(script, w[i].target, t);
       const from = resolve(script, w[i].target, leave);
@@ -306,9 +310,9 @@ export function buildReplay(
     let t = from;
     let side: Side = rng.next() < 0.5 ? "home" : "away";
     while (t < to - 2) {
-      const spanEnd = Math.min(to, t + 6 + rng.next() * 10);
+      const spanEnd = Math.min(to, t + 15 + rng.next() * 25);
       script.possession.push({ from: t, to: spanEnd, side, push: 0.25 + rng.next() * 0.4 });
-      for (let p = t + 0.2; p < spanEnd - 1; p += 2.5 + rng.next() * 2.5) pass(p, side, randomOf(rng, outfield(side)));
+      for (let p = t + 0.2; p < spanEnd - 1; p += 6 + rng.next() * 6) pass(p, side, randomOf(rng, outfield(side)));
       t = spanEnd;
       side = other(side);
     }
