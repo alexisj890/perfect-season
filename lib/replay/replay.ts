@@ -1,10 +1,14 @@
 // Turns a finished match (its result and events) into a replay "script": where
-// the ball and the 22 players are at every moment, plus the event feed. Pure and
-// deterministic — the same match always replays the same way — and it only acts
-// out what the engine already decided, so a replay can never change a result.
+// the ball and the 22 players are at every moment, plus the event feed and how
+// fast to play each part. Pure and deterministic — the same match always replays
+// the same way — and it only acts out what the engine already decided, so a
+// replay can never change a result.
 //
 // Time is measured in seconds of match time from kick-off, including stoppage
-// time; the renderer decides how fast to play it.
+// time. Like TV highlights, the script plays at two speeds: attacks (the
+// build-up, the shot and what follows) run close to real time so passes, shots
+// and saves are visible; the quiet spells in between run fast. The fast speed is
+// chosen per match so a whole replay takes about TARGET_REAL_SECONDS at 1×.
 //
 // Pitch coordinates are metres on a 105 × 68 pitch. The home side defends the
 // left goal (x = 0) and attacks right; the away side the opposite.
@@ -19,6 +23,12 @@ export const PITCH_LENGTH = 105;
 export const PITCH_WIDTH = 68;
 const GOAL_HALF_WIDTH = 3.66;
 
+// Playback (match seconds per real second at 1×).
+export const SLOW_RATE = 4; // attacks: close to real time
+export const TARGET_REAL_SECONDS = 180; // a whole match at 1×
+const MIN_FAST_RATE = 20;
+const MAX_FAST_RATE = 200;
+
 export interface ReplayPlayer {
   side: Side;
   index: number; // position in the team's line-up
@@ -27,14 +37,18 @@ export interface ReplayPlayer {
   isKeeper: boolean;
   baseX: number;
   baseY: number;
-  phase: number; // for the idle drift, different per player
+  phase: number; // for the idle sway, different per player
 }
 
 export type BallTarget = { kind: "player"; side: Side; index: number } | { kind: "point"; x: number; y: number };
 
+// The ball reaches `target` at time t, after travelling for `travel` seconds
+// (it stays with whoever has it until then).
 export interface BallWaypoint {
   t: number;
   target: BallTarget;
+  travel: number;
+  optional?: boolean; // an ordinary pass that can be dropped to make room
 }
 
 // A stretch of play in which one side has the ball. `push` (0–1) is how far
@@ -44,6 +58,27 @@ export interface PossessionSpan {
   to: number;
   side: Side;
   push: number;
+  ramp: number; // seconds to ease into this span's push (longer in fast-played spells)
+}
+
+// A player running to a spot: arrives at `arrive`, holds until `until`, then
+// drifts back to his position over `back` seconds. Used for shooters,
+// assisters and diving keepers.
+export interface Run {
+  side: Side;
+  index: number;
+  from: number;
+  arrive: number;
+  until: number;
+  back: number;
+  x: number;
+  y: number;
+}
+
+export interface Segment {
+  from: number;
+  to: number;
+  rate: number; // match seconds per real second at 1×
 }
 
 export interface Period {
@@ -67,9 +102,39 @@ export interface ReplayScript {
   players: ReplayPlayer[];
   waypoints: BallWaypoint[]; // in time order
   possession: PossessionSpan[];
+  runs: Run[];
+  segments: Segment[]; // cover the whole match, in order
   periods: Period[];
   feed: FeedItem[];
   duration: number; // seconds, end of the last period
+}
+
+// ---------------------------------------------------------------------------
+// Playback speed
+
+export function rateAt(script: ReplayScript, t: number): number {
+  return (script.segments.find((s) => t < s.to) ?? script.segments[script.segments.length - 1]).rate;
+}
+
+// Moves playback forward by `realSeconds` (at 1×) from match time t. Each part
+// is played at its own speed: when a fast spell hands over to a slow attack
+// mid-frame, the rest of the frame runs slowly — so the build-up isn't skipped.
+export function advance(script: ReplayScript, t: number, realSeconds: number): number {
+  let time = t;
+  let left = realSeconds;
+  while (left > 1e-9 && time < script.duration) {
+    const seg = script.segments.find((s) => time < s.to) ?? script.segments[script.segments.length - 1];
+    const toBoundary = (seg.to - time) / seg.rate; // real seconds to the end of this part
+    if (left < toBoundary) return time + left * seg.rate;
+    time = seg.to;
+    left -= toBoundary;
+  }
+  return Math.min(time, script.duration);
+}
+
+// How long the whole replay takes at 1×, in real seconds.
+export function realDuration(script: ReplayScript): number {
+  return script.segments.reduce((sum, s) => sum + (s.to - s.from) / s.rate, 0);
 }
 
 // ---------------------------------------------------------------------------
@@ -85,30 +150,48 @@ export function basePosition(pitchX: number, pitchY: number, side: Side): { x: n
 
 const ATTACK_DIRECTION: Record<Side, number> = { home: 1, away: -1 };
 const PUSH_METRES = 17; // how far a side moves up at full push
-// Times below are in match seconds; at 1× a match second lasts 1/30 of a real
-// second, so movements are timed long enough to look smooth when played back.
-const RAMP_SECONDS = 12; // how long a side takes to push up or drop back
-const PASS_TRAVEL_SECONDS = 4; // how long a pass (or shot) is in the air, at most
+const RAMP_SECONDS = 8; // how long a side takes to push up or drop back
 
-// How far `side` is pushed forward at time t (−0.6 … 1).
+// How far `side` is pushed forward at time t (−0.6 … 1). Each possession span
+// eases from wherever the side actually is when it starts, so the value is
+// continuous — overlapping or back-to-back spans never make a team jump.
 export function pushAt(script: ReplayScript, side: Side, t: number): number {
-  const spans = script.possession;
-  let i = spans.findIndex((s) => t >= s.from && t < s.to);
-  if (i < 0) i = t < (spans[0]?.from ?? 0) ? 0 : spans.length - 1;
-  const value = (span: PossessionSpan | undefined) => (!span ? 0 : span.side === side ? span.push : -0.6 * span.push);
-  const now = value(spans[i]);
-  const before = value(spans[i - 1]);
-  const ramp = Math.min(1, (t - (spans[i]?.from ?? 0)) / RAMP_SECONDS);
-  return before + (now - before) * Math.max(0, ramp);
+  const spans = script.possession; // sorted by `from`
+  let value = 0;
+  for (let i = 0; i < spans.length && spans[i].from <= t; i++) {
+    const span = spans[i];
+    const target = span.side === side ? span.push : -0.6 * span.push;
+    const until = Math.min(t, spans[i + 1]?.from ?? Infinity);
+    const k = Math.min(1, Math.max(0, until - span.from) / span.ramp);
+    value += (target - value) * k;
+  }
+  return value;
+}
+
+function runWeight(run: Run, t: number): number {
+  if (t <= run.from || t >= run.until + run.back) return 0;
+  if (t < run.arrive) return smooth((t - run.from) / Math.max(0.01, run.arrive - run.from));
+  if (t <= run.until) return 1;
+  return 1 - smooth((t - run.until) / run.back);
 }
 
 export function playerPosition(script: ReplayScript, player: ReplayPlayer, t: number): { x: number; y: number } {
   const push = pushAt(script, player.side, t) * (player.isKeeper ? 0.25 : 1);
-  const drift = player.isKeeper ? 0.6 : 1.8;
-  // A gentle sway (one cycle every couple of match minutes) so players don't jitter.
-  const x = player.baseX + ATTACK_DIRECTION[player.side] * push * PUSH_METRES + Math.sin(t * 0.05 + player.phase) * drift;
-  const y = player.baseY + Math.cos(t * 0.037 + player.phase * 1.7) * drift;
-  return { x: clamp(x, 1, PITCH_LENGTH - 1), y: clamp(y, 1, PITCH_WIDTH - 1) };
+  const sway = player.isKeeper ? 0.6 : 1.8;
+  // A gentle sway (one cycle every couple of match minutes) so players don't stand still.
+  let x = player.baseX + ATTACK_DIRECTION[player.side] * push * PUSH_METRES + Math.sin(t * 0.05 + player.phase) * sway;
+  let y = player.baseY + Math.cos(t * 0.037 + player.phase * 1.7) * sway;
+  // Runs (to a shooting spot, out wide, or a keeper's dive) pull him off his
+  // position. Each run blends from wherever the previous ones left him, so one
+  // run handing over to the next never makes him jump.
+  for (const run of script.runs) {
+    if (run.side !== player.side || run.index !== player.index) continue;
+    const w = runWeight(run, t);
+    if (w === 0) continue;
+    x += (run.x - x) * w;
+    y += (run.y - y) * w;
+  }
+  return { x: clamp(x, 0.5, PITCH_LENGTH - 0.5), y: clamp(y, 0.5, PITCH_WIDTH - 0.5) };
 }
 
 function resolve(script: ReplayScript, target: BallTarget, t: number): { x: number; y: number } {
@@ -123,17 +206,15 @@ export function ballPosition(script: ReplayScript, t: number): { x: number; y: n
   if (t <= w[0].t) return resolve(script, w[0].target, t);
   for (let i = 0; i < w.length - 1; i++) {
     if (t < w[i + 1].t) {
-      // The ball stays with whoever has it (a player carries it; a ball in the
-      // net stays there), then travels in the last moment before the next
-      // waypoint — so a shot arrives exactly when the event happens.
-      const travel = Math.min(PASS_TRAVEL_SECONDS, w[i + 1].t - w[i].t);
+      // The ball stays with whoever has it, then travels in the last moment
+      // before the next waypoint — so a shot arrives exactly when it happens.
+      const travel = Math.min(w[i + 1].travel, w[i + 1].t - w[i].t - 0.05);
       const leave = w[i + 1].t - travel;
       if (t < leave) return resolve(script, w[i].target, t);
       const from = resolve(script, w[i].target, leave);
       const to = resolve(script, w[i + 1].target, w[i + 1].t);
-      const k = clamp((t - leave) / travel, 0, 1);
-      const eased = 1 - (1 - k) * (1 - k);
-      return { x: from.x + (to.x - from.x) * eased, y: from.y + (to.y - from.y) * eased };
+      const k = smooth(clamp((t - leave) / travel, 0, 1));
+      return { x: from.x + (to.x - from.x) * k, y: from.y + (to.y - from.y) * k };
     }
   }
   return resolve(script, w[w.length - 1].target, t);
@@ -180,6 +261,12 @@ function timeOfClock(periods: Period[], clock: MatchClock, second: number): numb
 // ---------------------------------------------------------------------------
 // Building the script
 
+const KICKOFF_WINDOW = 6; // seconds of slow play at each kick-off
+const RUN_BACK_REAL = 1; // real seconds (at 1×) a player takes to get back into position after a run
+const SPRINT = 8; // metres per match second: nobody runs faster than this
+const BUILD_UP = 16; // seconds of build-up before a shot (less if events are close)
+const AFTERMATH: Record<ShotEvent["outcome"], number> = { goal: 12, saved: 6, post: 6, wide: 6 };
+
 // `slots` are the formation slots (from formation_slots.csv), for player positions.
 export function buildReplay(
   result: MatchResult,
@@ -193,15 +280,14 @@ export function buildReplay(
   const slotById = new Map(slots.map((s) => [s.id, s]));
   const players: ReplayPlayer[] = (["home", "away"] as const).flatMap((side) =>
     teams[side].players.map((p, index) => {
-      const slot = p.slot;
-      const formationSlot = slotById.get(slot);
-      if (!formationSlot) throw new Error(`Unknown formation slot "${slot}"`);
+      const formationSlot = slotById.get(p.slot);
+      if (!formationSlot) throw new Error(`Unknown formation slot "${p.slot}"`);
       const base = basePosition(formationSlot.pitchX, formationSlot.pitchY, side);
       return {
         side,
         index,
         playerId: p.player.id,
-        slot,
+        slot: p.slot,
         isKeeper: p.isKeeperSlot,
         baseX: base.x,
         baseY: base.y,
@@ -210,81 +296,260 @@ export function buildReplay(
     }),
   );
   const periods = periodsOf(result);
-  const script: ReplayScript = { players, waypoints: [], possession: [], periods, feed: [], duration: periods.at(-1)!.end };
+  const script: ReplayScript = {
+    players,
+    waypoints: [],
+    possession: [],
+    runs: [],
+    segments: [],
+    periods,
+    feed: [],
+    duration: periods.at(-1)!.end,
+  };
 
   const indexOf = (side: Side, playerId: string) => teams[side].players.findIndex((p) => p.player.id === playerId);
   const keeperIndex = (side: Side) => teams[side].players.findIndex((p) => p.isKeeperSlot);
   const outfield = (side: Side) => teams[side].players.map((_, i) => i).filter((i) => i !== keeperIndex(side));
   const other = (side: Side): Side => (side === "home" ? "away" : "home");
-  // Waypoints are only ever added in time order, so the ball's path can't double back.
-  const add = (t: number, target: BallTarget) => {
-    const last = script.waypoints.at(-1);
-    if (!last || t > last.t + 0.05) script.waypoints.push({ t, target });
-  };
-  const pass = (t: number, side: Side, index: number) => add(t, { kind: "player", side, index });
-  const point = (t: number, x: number, y: number) => add(t, { kind: "point", x, y });
   const goalX = (attacking: Side) => (attacking === "home" ? PITCH_LENGTH : 0);
+  const towardGoal = (attacking: Side, metres: number) => goalX(attacking) - ATTACK_DIRECTION[attacking] * metres;
+  const playerAt = (side: Side, index: number) => players.find((p) => p.side === side && p.index === index)!;
 
-  const timed = placeShots(result.events.filter((e): e is ShotEvent => e.type === "shot"), periods, rng);
+  // Waypoints are only ever added in time order, so the ball's path can't double
+  // back. If an ordinary pass would leave the next movement too little time to
+  // travel (so it would zip across the screen), that ordinary pass is dropped.
+  const add = (t: number, target: BallTarget, travel: number, optional = false) => {
+    const w = script.waypoints;
+    while (w.length > 1 && w[w.length - 1].optional && t - w[w.length - 1].t < travel * 0.9) w.pop();
+    const last = w.at(-1);
+    if (last && t - last.t < travel * 0.9 && optional) return; // no room for this ordinary pass
+    if (!last || t > last.t + 0.1) w.push({ t, target, travel, optional });
+  };
+  const pass = (t: number, side: Side, index: number, travel: number, optional = false) =>
+    add(t, { kind: "player", side, index }, travel, optional);
+  const point = (t: number, x: number, y: number, travel: number) => add(t, { kind: "point", x, y }, travel);
+  const lastHolder = (): { side: Side; index: number } | null => {
+    const target = script.waypoints.at(-1)?.target;
+    return target?.kind === "player" ? { side: target.side, index: target.index } : null;
+  };
+  // Adds a run, limited to sprinting speed: if there isn't time to reach the spot,
+  // the run starts earlier (but not before `earliest`), and if that still isn't
+  // enough he stops short, as far as he can get.
+  let earliest = 0;
+  const addRun = (run: Run) => {
+    const player = playerAt(run.side, run.index);
+    const from = Math.max(earliest, Math.min(run.from, run.arrive - 0.5));
+    const start = playerPosition(script, player, from);
+    const distance = Math.hypot(run.x - start.x, run.y - start.y);
+    const needed = distance / SPRINT;
+    const begin = Math.max(earliest, Math.min(from, run.arrive - needed));
+    const reach = Math.min(1, ((run.arrive - begin) * SPRINT) / Math.max(distance, 0.01));
+    const startAt = playerPosition(script, player, begin);
+    script.runs.push({
+      ...run,
+      from: begin,
+      x: startAt.x + (run.x - startAt.x) * reach,
+      y: startAt.y + (run.y - startAt.y) * reach,
+    });
+  };
 
+  // The opponent nearest to where the ball is, to intercept it.
+  const nearestOpponent = (side: Side, t: number): number => {
+    const at = ballPosition(script, t);
+    let best = outfield(side)[0];
+    let bestDistance = Infinity;
+    for (const i of outfield(side)) {
+      const pos = playerPosition(script, playerAt(side, i), t);
+      const d = Math.hypot(pos.x - at.x, pos.y - at.y);
+      if (d < bestDistance) {
+        bestDistance = d;
+        best = i;
+      }
+    }
+    return best;
+  };
+
+  // 1. When each shot happens, and the window of slow play around it.
+  const timed = placeShots(
+    result.events.filter((e): e is ShotEvent => e.type === "shot"),
+    periods,
+    rng,
+  );
+  // `stretch` is where the unbroken run of slow play containing this attack
+  // began (back-to-back attacks share one), so runs can start that early.
+  type Plan = { shot: ShotEvent; t: number; from: number; to: number; stretch: number };
+  const plansByPeriod: Plan[][] = periods.map((period) => {
+    const events = timed.filter((x) => x.t >= period.start && x.t < period.end);
+    const plans: Plan[] = [];
+    let free = period.start + KICKOFF_WINDOW;
+    events.forEach(({ shot, t }, i) => {
+      const nextT = events[i + 1]?.t ?? period.end;
+      const from = Math.max(free, t - BUILD_UP);
+      const to = t + Math.max(0.8, Math.min(AFTERMATH[shot.outcome], nextT - t - 1.5));
+      const previous = plans.at(-1);
+      const contiguous = previous ? from <= previous.to + 0.01 : from <= period.start + KICKOFF_WINDOW + 0.01;
+      const stretch = contiguous ? (previous?.stretch ?? period.start) : from;
+      plans.push({ shot, t, from, to, stretch });
+      free = to;
+    });
+    return plans;
+  });
+
+  // 2. Playback speed: slow for kick-offs and attacks, fast in between, so the
+  //    whole match takes about TARGET_REAL_SECONDS at 1×.
+  const slow: [number, number][] = [];
+  periods.forEach((period, i) => {
+    slow.push([period.start, period.start + KICKOFF_WINDOW]);
+    for (const p of plansByPeriod[i]) slow.push([p.from, p.to]);
+  });
+  const slowTotal = slow.reduce((sum, [a, b]) => sum + (b - a), 0);
+  const quietTotal = script.duration - slowTotal;
+  const realLeft = Math.max(30, TARGET_REAL_SECONDS - slowTotal / SLOW_RATE);
+  const fastRate = clamp(quietTotal / realLeft, MIN_FAST_RATE, MAX_FAST_RATE);
+  let cursorT = 0;
+  for (const [a, b] of slow) {
+    if (a > cursorT) script.segments.push({ from: cursorT, to: a, rate: fastRate });
+    script.segments.push({ from: a, to: b, rate: SLOW_RATE });
+    cursorT = b;
+  }
+  if (cursorT < script.duration) script.segments.push({ from: cursorT, to: script.duration, rate: fastRate });
+
+  // Real-time feel for ball movement: a pass is in the air for about this long on screen.
+  const slowPass = 0.55 * SLOW_RATE; // ≈ half a second at 1×
+  const fastPass = 0.45 * fastRate;
+
+  // 3. Ball and players.
   const score = { home: 0, away: 0 };
   let kickoffSide: Side = rng.next() < 0.5 ? "home" : "away";
 
-  for (const period of periods) {
-    const events = timed.filter((x) => x.t >= period.start && x.t < period.end);
-    // Kick-off from the centre spot.
-    point(period.start, PITCH_LENGTH / 2, PITCH_WIDTH / 2);
-    pass(period.start + 1, kickoffSide, randomOf(rng, outfield(kickoffSide)));
+  periods.forEach((period, pi) => {
+    point(period.start, PITCH_LENGTH / 2, PITCH_WIDTH / 2, 0.1);
+    pass(period.start + 2, kickoffSide, randomOf(rng, outfield(kickoffSide)), slowPass);
+    script.possession.push({ from: period.start, to: period.start + KICKOFF_WINDOW, side: kickoffSide, push: 0.2, ramp: RAMP_SECONDS });
     kickoffSide = other(kickoffSide);
-    let free = period.start + 2; // play is free to continue from here
+    let free = period.start + KICKOFF_WINDOW;
 
-    events.forEach(({ shot, t }, i) => {
+    for (const plan of plansByPeriod[pi]) {
+      const { shot, t, from: buildStart, to: end, stretch } = plan;
+      // Players drift back after a run over the rest of this slow window plus about
+      // a second on screen of whatever comes next, so nobody snaps back into place.
+      const runsBefore = script.runs.length;
+      earliest = stretch; // runs happen in slow motion: in this attack, or the one just before
       const side = shot.side;
       const defending = other(side);
-      const nextT = events[i + 1]?.t ?? period.end;
-
-      // Ordinary play, then the build-up (up to 14 seconds, shorter if events are close together).
-      const buildStart = Math.max(free, t - 14);
+      const keeper = keeperIndex(defending);
+      const shooter = indexOf(side, shot.shooterId);
       filler(free, buildStart);
-      script.possession.push({ from: buildStart, to: t + 1.5, side, push: 1 });
-      if (t - buildStart > 7) pass(buildStart, side, randomOf(rng, outfield(side)));
-      if (shot.source === "corner" && t - buildStart > 3) {
-        const top = rng.next() < 0.5;
-        point(t - 3, goalX(side) === 0 ? 0.6 : PITCH_LENGTH - 0.6, top ? 0.6 : PITCH_WIDTH - 0.6);
-      } else if (shot.assistId && t - buildStart > 4) {
-        pass(t - 4, side, indexOf(side, shot.assistId));
-      }
-      pass(t - Math.min(1.6, (t - buildStart) / 2), side, indexOf(side, shot.shooterId));
 
-      // The shot, then what happens next — squeezed in before the next event.
-      const room = nextT - t - 1.5;
-      const after = (wanted: number) => t + Math.max(0.6, Math.min(wanted, room));
-      const yAim = PITCH_WIDTH / 2 + (rng.next() * 2 - 1) * (GOAL_HALF_WIDTH - 0.6);
+      // --- The build-up ---------------------------------------------------
+      script.possession.push({ from: buildStart, to: t + 1.5, side, push: 1, ramp: RAMP_SECONDS });
+      const room = t - buildStart;
       const gx = goalX(side);
+      const holder = lastHolder();
+      if (room > 9) {
+        // Keep the ball, or win it: the nearest player intercepts. Timed so the
+        // whole pass happens inside the slow part, not half of it fast-forwarded.
+        const first = holder && holder.side === side ? holder.index : nearestOpponent(side, buildStart);
+        pass(buildStart + slowPass + 0.3, side, first, slowPass, true);
+      }
+
+      let shotTravel = 0.35 * SLOW_RATE; // a shot is quick
+      if (shot.source === "penalty") {
+        // The ball on the spot, the taker's run-up, the kick.
+        const spotX = towardGoal(side, 11);
+        point(t - 3, spotX, PITCH_WIDTH / 2, slowPass);
+        addRun({ back: 0, side, index: shooter, from: buildStart, arrive: t - 2, until: t + 1, x: towardGoal(side, 12.5), y: PITCH_WIDTH / 2 });
+      } else if (shot.source === "free kick") {
+        const fkX = towardGoal(side, 21 + rng.next() * 6);
+        const fkY = PITCH_WIDTH / 2 + (rng.next() * 2 - 1) * 10;
+        point(t - 3, fkX, fkY, slowPass);
+        addRun({ back: 0, side, index: shooter, from: buildStart, arrive: t - 2, until: t + 1, x: fkX - ATTACK_DIRECTION[side] * 1.5, y: fkY });
+        shotTravel = 0.45 * SLOW_RATE; // curled over the wall
+      } else if (shot.source === "corner") {
+        // To the corner flag, a cross into the box, a header.
+        const top = rng.next() < 0.5;
+        point(t - 4, gx === 0 ? 0.5 : PITCH_LENGTH - 0.5, top ? 0.5 : PITCH_WIDTH - 0.5, slowPass);
+        addRun({
+          back: 0,
+          side,
+          index: shooter,
+          from: buildStart,
+          arrive: t - 1.5,
+          until: t + 1,
+          x: towardGoal(side, 6 + rng.next() * 4),
+          y: PITCH_WIDTH / 2 + (rng.next() * 2 - 1) * 5,
+        });
+        pass(t - 0.9, side, shooter, 0.75 * SLOW_RATE); // the cross hangs in the air
+        shotTravel = 0.25 * SLOW_RATE;
+      } else {
+        // Open play: the shooter makes a run into the box; the assister goes wide.
+        addRun({
+          back: 0,
+          side,
+          index: shooter,
+          from: buildStart,
+          arrive: t - 1.4,
+          until: t + 1,
+          x: towardGoal(side, 9 + rng.next() * 12),
+          y: PITCH_WIDTH / 2 + (rng.next() * 2 - 1) * 12,
+        });
+        if (shot.assistId) {
+          const assister = indexOf(side, shot.assistId);
+          if (room > 6) {
+            const wide = rng.next() < 0.5 ? 1 : -1;
+            addRun({
+              back: 0,
+              side,
+              index: assister,
+              from: buildStart,
+              arrive: t - 4,
+              until: t - 1,
+              x: towardGoal(side, 18 + rng.next() * 10),
+              y: PITCH_WIDTH / 2 + wide * (14 + rng.next() * 10),
+            });
+            pass(t - 4, side, assister, slowPass, true);
+          }
+        } else if (room > 6) {
+          pass(t - 5, side, randomOf(rng, outfield(side).filter((i) => i !== shooter)), slowPass, true);
+        }
+        pass(t - 1.2, side, shooter, slowPass);
+      }
+
+      // --- The shot and what follows ---------------------------------------
+      const aimY = PITCH_WIDTH / 2 + (rng.next() * 2 - 1) * (GOAL_HALF_WIDTH - 0.6);
+      const lineX = gx + (gx === 0 ? 1.2 : -1.2); // just in front of the goal line
       if (shot.outcome === "goal") {
         score[side]++;
-        point(t, gx + (gx === 0 ? -1.2 : 1.2), yAim);
-        const end = after(9); // celebrations, then kick-off
-        if (end - t > 4) point(end - 1, PITCH_LENGTH / 2, PITCH_WIDTH / 2);
-        pass(end, defending, randomOf(rng, outfield(defending)));
-        script.possession.push({ from: t + 1.5, to: end, side: defending, push: 0 });
-        free = end;
+        point(t, gx + (gx === 0 ? -1.2 : 1.2), aimY, shotTravel);
+        // The keeper dives — the wrong way, or too late.
+        const dive = aimY + (rng.next() < 0.5 ? -1 : 1) * (2.5 + rng.next() * 2);
+        addRun({ back: 0, side: defending, index: keeper, from: t - 0.6, arrive: t + 0.3, until: t + 2, x: lineX, y: dive });
+        // Celebrations, then the ball back on the centre spot and a kick-off.
+        if (end - t > 5) point(end - 2, PITCH_LENGTH / 2, PITCH_WIDTH / 2, slowPass);
+        pass(end, defending, randomOf(rng, outfield(defending)), slowPass, true);
+        script.possession.push({ from: t + 1.5, to: end, side: defending, push: 0, ramp: RAMP_SECONDS });
       } else if (shot.outcome === "saved") {
-        pass(t, defending, keeperIndex(defending));
-        free = after(4);
-        pass(free, defending, randomOf(rng, outfield(defending)));
+        // The keeper dives to the ball and holds it, then plays it out.
+        addRun({ back: 0, side: defending, index: keeper, from: t - 0.6, arrive: t, until: t + 2, x: lineX, y: aimY });
+        point(t, lineX, aimY, shotTravel);
+        pass(t + 2, defending, keeper, 0.2 * SLOW_RATE);
+        pass(end, defending, randomOf(rng, outfield(defending)), slowPass, true);
       } else if (shot.outcome === "post") {
         const postY = PITCH_WIDTH / 2 + (rng.next() < 0.5 ? -1 : 1) * GOAL_HALF_WIDTH;
-        point(t, gx, postY);
-        point(after(0.8), gx + (gx === 0 ? 7 : -7), postY + (rng.next() * 2 - 1) * 6);
-        free = after(4);
-        pass(free, defending, randomOf(rng, outfield(defending)));
+        addRun({ back: 0, side: defending, index: keeper, from: t - 0.6, arrive: t + 0.2, until: t + 1.5, x: lineX, y: postY * 0.7 + aimY * 0.3 });
+        point(t, gx, postY, shotTravel);
+        point(t + 1.2, towardGoal(side, 8), postY + (rng.next() * 2 - 1) * 6, 0.3 * SLOW_RATE); // the rebound
+        pass(end, defending, nearestOpponent(defending, t + 1.2), slowPass, true);
       } else {
         const wideY = PITCH_WIDTH / 2 + (rng.next() < 0.5 ? -1 : 1) * (GOAL_HALF_WIDTH + 2 + rng.next() * 6);
-        point(t, gx + (gx === 0 ? -2 : 2), wideY);
-        free = after(4);
-        pass(free, defending, keeperIndex(defending)); // goal kick
+        addRun({ back: 0, side: defending, index: keeper, from: t - 0.6, arrive: t, until: t + 1, x: lineX, y: PITCH_WIDTH / 2 + (wideY - PITCH_WIDTH / 2) * 0.4 });
+        point(t, gx + (gx === 0 ? -2.5 : 2.5), wideY, shotTravel);
+        // Goal kick: the ball placed in the six-yard box, then played out.
+        point(Math.min(end - 1, t + 3), towardGoal(side, 5.5), PITCH_WIDTH / 2 + (rng.next() * 2 - 1) * 6, 0.3 * SLOW_RATE);
+        pass(end, defending, randomOf(rng, outfield(defending)), slowPass, true);
       }
+      for (const run of script.runs.slice(runsBefore)) run.back = Math.max(1, end - run.until) + RUN_BACK_REAL * fastRate;
+      free = end;
 
       const kind: FeedItem["kind"] =
         shot.outcome === "goal"
@@ -297,22 +562,35 @@ export function buildReplay(
                 ? "post"
                 : "wide";
       script.feed.push({ t, clock: { minute: shot.minute, addedTime: shot.addedTime }, kind, side, shot, score: { ...score } });
-    });
+    }
     filler(free, period.end);
-  }
+  });
 
   script.possession.sort((a, b) => a.from - b.from);
+  script.runs.sort((a, b) => a.from - b.from);
   return script;
 
-  // Ordinary play between events: one side keeps the ball for a while, passing
-  // it around, then the other side wins it back.
+  // Ordinary play between attacks (played fast): one side keeps the ball for a
+  // while, then the other side intercepts it. Passes are spaced for the fast
+  // speed so each one is still visible.
   function filler(from: number, to: number) {
     let t = from;
-    let side: Side = rng.next() < 0.5 ? "home" : "away";
-    while (t < to - 2) {
-      const spanEnd = Math.min(to, t + 15 + rng.next() * 25);
-      script.possession.push({ from: t, to: spanEnd, side, push: 0.25 + rng.next() * 0.4 });
-      for (let p = t + 0.2; p < spanEnd - 1; p += 6 + rng.next() * 6) pass(p, side, randomOf(rng, outfield(side)));
+    let side: Side = lastHolder()?.side ?? (rng.next() < 0.5 ? "home" : "away");
+    while (t < to - fastPass) {
+      const spanEnd = Math.min(to, t + fastRate * (3 + rng.next() * 4)); // a few real seconds of possession
+      // Ease over ~0.8 real seconds, however fast this spell plays.
+      script.possession.push({ from: t, to: spanEnd, side, push: 0.25 + rng.next() * 0.4, ramp: Math.min(fastRate * 0.8, spanEnd - t) });
+      let p = t + fastPass;
+      // The first pass of a new spell goes to whoever wins the ball.
+      if (lastHolder()?.side !== side) {
+        pass(p, side, nearestOpponent(side, p - fastPass), fastPass, true);
+        p += fastRate * (1 + rng.next() * 0.6);
+      }
+      for (; p < spanEnd - fastPass * 0.5; p += fastRate * (1 + rng.next() * 0.6)) {
+        const holder = lastHolder();
+        const options = outfield(side).filter((i) => !(holder && holder.side === side && holder.index === i));
+        pass(p, side, randomOf(rng, options), fastPass, true);
+      }
       t = spanEnd;
       side = other(side);
     }
@@ -343,7 +621,6 @@ function placeShots(shots: ShotEvent[], periods: Period[], rng: Rng): { shot: Sh
   }
   placed.sort((a, b) => a.t - b.t);
 
-  // Leave time for the restart after each goal.
   for (let i = 1; i < placed.length; i++) {
     const prev = placed[i - 1];
     const cur = placed[i];
@@ -365,4 +642,10 @@ function randomOf(rng: Rng, items: number[]): number {
 
 function clamp(n: number, min: number, max: number): number {
   return Math.max(min, Math.min(max, n));
+}
+
+// Ease in and out (0 → 1).
+function smooth(k: number): number {
+  const c = clamp(k, 0, 1);
+  return c * c * (3 - 2 * c);
 }

@@ -4,7 +4,20 @@ import { lineupByRank } from "@/lib/engine/lineups";
 import { goalsOf, simulateMatch, type MatchResult } from "@/lib/engine/match";
 import { buildTeam } from "@/lib/engine/team";
 import { createRng } from "@/lib/rng";
-import { ballPosition, basePosition, buildReplay, clockAt, PITCH_LENGTH, PITCH_WIDTH, playerPosition } from "./replay";
+import {
+  advance,
+  ballPosition,
+  basePosition,
+  buildReplay,
+  clockAt,
+  PITCH_LENGTH,
+  PITCH_WIDTH,
+  playerPosition,
+  rateAt,
+  realDuration,
+  TARGET_REAL_SECONDS,
+  type ReplayScript,
+} from "./replay";
 
 const data = loadGameData();
 const slots = data.formation.slots;
@@ -97,5 +110,127 @@ describe("buildReplay", () => {
     const span = script.possession.find((s) => s.push === 1 && s.side === "home" && s.to - s.from >= 13)!;
     const striker = script.players.find((p) => p.side === "home" && p.slot === "ST")!;
     expect(playerPosition(script, striker, span.to - 0.5).x).toBeGreaterThan(striker.baseX + 8);
+  });
+});
+
+// How the replay looks when played: things a viewer would notice.
+describe("replay playback", () => {
+  const near = (a: { x: number; y: number }, b: { x: number; y: number }) => Math.hypot(a.x - b.x, a.y - b.y);
+  const playerOf = (script: ReplayScript, side: "home" | "away", id: string) =>
+    script.players.find((p) => p.side === side && p.playerId === id)!;
+
+  it("covers the whole match with speed segments and takes about 3 minutes at 1×", () => {
+    for (const { script } of scripts) {
+      expect(script.segments[0].from).toBe(0);
+      expect(script.segments.at(-1)!.to).toBe(script.duration);
+      script.segments.forEach((seg, i) => i > 0 && expect(seg.from).toBe(script.segments[i - 1].to));
+      expect(realDuration(script)).toBeGreaterThan(TARGET_REAL_SECONDS * 0.8);
+      expect(realDuration(script)).toBeLessThan(TARGET_REAL_SECONDS * 1.6);
+    }
+  });
+
+  it("plays every shot in slow motion", () => {
+    for (const { script } of scripts) {
+      for (const f of script.feed) expect(rateAt(script, f.t - 0.5)).toBeLessThanOrEqual(5);
+    }
+  });
+
+  it("moves the ball visibly between players instead of teleporting", () => {
+    let passes = 0;
+    let visible = 0;
+    for (const { script } of scripts.slice(0, 20)) {
+      const w = script.waypoints;
+      for (let i = 1; i < w.length; i++) {
+        const from = ballPosition(script, w[i].t - Math.min(w[i].travel, w[i].t - w[i - 1].t - 0.05) - 0.01);
+        const to = ballPosition(script, w[i].t);
+        if (near(from, to) < 4) continue; // a short tap or a hand-off
+        passes++;
+        const onScreen = Math.min(w[i].travel, w[i].t - w[i - 1].t - 0.05) / rateAt(script, w[i].t - 0.01);
+        if (onScreen >= 0.2) visible++;
+      }
+    }
+    expect(visible / passes).toBeGreaterThan(0.95);
+  });
+
+  it("shows each shot travelling for at least a quarter of a second", () => {
+    for (const { script } of scripts) {
+      for (const f of script.feed) {
+        const w = script.waypoints.find((x) => Math.abs(x.t - f.t) < 0.01)!;
+        expect(w.travel / rateAt(script, f.t - 0.01)).toBeGreaterThanOrEqual(0.25);
+      }
+    }
+  });
+
+  it("takes open-play shots from near goal, and the keeper reaches the ball on a save", () => {
+    for (const { script } of scripts) {
+      for (const f of script.feed) {
+        const goalX = f.side === "home" ? PITCH_LENGTH : 0;
+        if (f.shot.source === "open play") {
+          const shooter = playerOf(script, f.side, f.shot.shooterId);
+          expect(Math.abs(playerPosition(script, shooter, f.t - 0.2).x - goalX)).toBeLessThan(30);
+        }
+        if (f.kind === "save") {
+          const keeper = script.players.find((p) => p.side !== f.side && p.isKeeper)!;
+          expect(near(playerPosition(script, keeper, f.t), ballPosition(script, f.t))).toBeLessThan(2);
+        }
+      }
+    }
+  });
+
+  it("changes possession by interception, to the opponent nearest the ball", () => {
+    const { script } = scripts[5];
+    const w = script.waypoints;
+    let checked = 0;
+    for (let i = 1; i < w.length; i++) {
+      const a = w[i - 1].target;
+      const b = w[i].target;
+      if (a.kind !== "player" || b.kind !== "player" || a.side === b.side) continue;
+      const leave = w[i].t - Math.min(w[i].travel, w[i].t - w[i - 1].t - 0.05);
+      const ball = ballPosition(script, leave);
+      const receiver = script.players.find((p) => p.side === b.side && p.index === b.index)!;
+      const distances = script.players
+        .filter((p) => p.side === b.side && !p.isKeeper)
+        .map((p) => near(playerPosition(script, p, leave), ball));
+      expect(near(playerPosition(script, receiver, leave), ball)).toBeLessThanOrEqual(Math.min(...distances) + 15);
+      checked++;
+    }
+    expect(checked).toBeGreaterThan(5);
+  });
+});
+
+describe("replay smoothness (no teleporting)", () => {
+  it("never moves a player or the ball implausibly far between two frames at 1×", () => {
+    let worstBall = 0;
+    let worstPlayer = 0;
+    for (const { script } of scripts.slice(0, 3)) {
+      let t = 0;
+      let ball = ballPosition(script, 0);
+      let players = script.players.map((p) => playerPosition(script, p, 0));
+      while (t < script.duration) {
+        const before = t;
+        t = advance(script, t, 1 / 60); // one frame at 60 fps
+        const nowBall = ballPosition(script, t);
+        const nowPlayers = script.players.map((p) => playerPosition(script, p, t));
+        // Half-time is a deliberate reset, hidden behind the half-time banner.
+        if (!script.periods.some((p) => p.end > before && p.end <= t)) {
+          worstBall = Math.max(worstBall, Math.hypot(nowBall.x - ball.x, nowBall.y - ball.y));
+          nowPlayers.forEach((p, k) => (worstPlayer = Math.max(worstPlayer, Math.hypot(p.x - players[k].x, p.y - players[k].y))));
+        }
+        ball = nowBall;
+        players = nowPlayers;
+      }
+    }
+    expect(worstPlayer).toBeLessThan(6); // metres in one frame
+    expect(worstBall).toBeLessThan(10); // a hard shot, at most
+  });
+
+  it("advances each part of the match at its own speed", () => {
+    const { script } = scripts[0];
+    const fast = script.segments.find((s) => s.rate > 10)!;
+    const slow = script.segments.find((s) => s.from === fast.to)!;
+    // One real second starting just before a fast→slow change: almost all of it is spent in the slow part.
+    const t = advance(script, fast.to - 1, 1);
+    expect(t).toBeGreaterThan(fast.to);
+    expect(t - fast.to).toBeLessThanOrEqual(slow.rate);
   });
 });

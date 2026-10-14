@@ -11,11 +11,10 @@ import { HorizontalPitchMarkings } from "@/components/ui/HorizontalPitch";
 import type { FormationSlot, Player } from "@/lib/data/types";
 import { formatClock, type MatchResult, type Side } from "@/lib/engine/match";
 import type { MatchRatings } from "@/lib/engine/ratings";
-import { ballPosition, clockAt, playerPosition, type FeedItem, type ReplayScript } from "@/lib/replay/replay";
+import { advance, ballPosition, clockAt, playerPosition, type FeedItem, type ReplayScript } from "@/lib/replay/replay";
 
-// Match seconds per real second at 1× — a 90-minute match takes about 3 minutes
-// (2× about 90 seconds, 4× about 45).
-export const BASE_SPEED = 30;
+// Playback speed comes from the script (rateAt): attacks play close to real
+// time, quiet spells fast, about 3 minutes per match at 1× (90 s at 2×, 45 s at 4×).
 const SPEEDS = [1, 2, 4] as const;
 const GOAL_PAUSE_MS = 1800;
 const HALF_TIME_PAUSE_MS = 1500;
@@ -57,7 +56,7 @@ export function MatchReplay(props: Props) {
       if (now >= s.holdUntil) {
         setBanner(null);
         const before = s.t;
-        const after = Math.min(script.duration, before + dt * BASE_SPEED * speed);
+        const after = advance(script, before, dt * speed);
         const goal = script.feed.find((f) => f.kind === "goal" && f.t > before && f.t <= after);
         const breakAt = script.periods.find((p, i) => i < script.periods.length - 1 && p.end > before && p.end <= after);
         if (goal) {
