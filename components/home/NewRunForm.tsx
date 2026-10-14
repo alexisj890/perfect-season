@@ -5,7 +5,6 @@
 
 import { useState } from "react";
 import type { Difficulty } from "@/lib/draft/config";
-import { card } from "@/components/ui/card";
 import { DIFFICULTIES } from "./difficulties";
 
 export const TEAM_NAME_MAX = 24;
@@ -30,8 +29,7 @@ export function NewRunForm({ hasRunInProgress, onStart }: Props) {
   }
 
   return (
-    <form onSubmit={submit} className={`${card} flex flex-col gap-4`}>
-      <h2 className="font-semibold">New run</h2>
+    <form onSubmit={submit} className="flex flex-col gap-4">
 
       <label className="flex flex-col gap-1 text-sm">
         <span className="text-muted">Team name</span>
@@ -64,9 +62,6 @@ export function NewRunForm({ hasRunInProgress, onStart }: Props) {
               />
               <span className="font-semibold">{d.label}</span>
               <span className="text-xs text-muted">{d.rivals}</span>
-              <span className="mt-auto pt-1 text-xs">
-                35–0 odds: <span className="font-semibold text-accent">{d.perfectOdds}</span>
-              </span>
             </label>
           ))}
         </div>

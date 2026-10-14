@@ -45,11 +45,33 @@
   --color-pitch: var(--pitch);
   --color-pitch-line: var(--pitch-line);
   --color-danger: var(--danger);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-barlow);
+  --font-display: var(--font-barlow-condensed); /* the "35–0" headline only */
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
+}
+
+/* The landing page's 35 dots fill in one by one, dim to gold. Each dot sets
+   its own animation-delay. With reduced motion they simply start filled. */
+@keyframes dot-fill {
+  from {
+    background-color: var(--border);
+  }
+  to {
+    background-color: var(--accent);
+  }
+}
+
+.perfect-dot {
+  background-color: var(--accent);
+  animation: dot-fill 260ms ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .perfect-dot {
+    animation: none;
+  }
 }

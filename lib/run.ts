@@ -117,26 +117,33 @@ export function finishPlayoffs(run: RunState, data: GameData): RunState {
   return { ...started, playoffs: playRestOfPlayoffs(started.playoffs!, teamProfiles(run, data)) };
 }
 
-// One line describing where a run is, for the "Continue" button.
+export const DIFFICULTY_LABEL: Record<Difficulty, string> = { easy: "Easy", normal: "Normal", hard: "Hard" };
+
+// Where a run is, in a few words: "Pick 4 of 176", "Matchday 14 of 30 · 13W 0D 0L", …
 export function runSummary(run: RunState): string {
   const phase = runPhase(run);
   if (phase === "draft") {
     const total = run.draft.teams.length * run.draft.rounds;
-    return `Draft · pick ${run.draft.picks.length + 1} of ${total}`;
+    return `Pick ${run.draft.picks.length + 1} of ${total}`;
   }
   if (phase === "season") {
     const s = run.season!;
     const played = s.matches.filter((m) => m.result !== null);
     const matchday = played.length === 0 ? 0 : Math.max(...played.map((m) => m.matchday));
     const { won, drawn, lost } = teamRecord(s, userTeam(run));
-    return `Season · matchday ${matchday} of 30 · ${won}W ${drawn}D ${lost}L`;
+    return `Matchday ${matchday} of 30 · ${won}W ${drawn}D ${lost}L`;
   }
   if (phase === "playoffs") return "Playoffs";
   const outcome = outcomeOf(run);
-  if (outcome.kind === "champion") return outcome.perfect ? "Finished · Perfect season!" : "Finished · Champions";
-  if (outcome.kind === "eliminated") return `Finished · knocked out (${outcome.round})`;
-  if (outcome.kind === "relegated") return `Finished · ${ordinal(outcome.position)} place`;
+  if (outcome.kind === "champion") return outcome.perfect ? "Perfect season!" : "Champions";
+  if (outcome.kind === "eliminated") return `Knocked out (${outcome.round})`;
+  if (outcome.kind === "relegated") return `Finished ${ordinal(outcome.position)}`;
   return "Finished";
+}
+
+// The line under the Continue button: "Easy · Pick 4 of 176".
+export function runStatusLine(run: RunState): string {
+  return `${DIFFICULTY_LABEL[run.difficulty]} · ${runSummary(run)}`;
 }
 
 function ordinal(n: number): string {

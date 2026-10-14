@@ -34,9 +34,9 @@ describe("NewRunForm", () => {
     expect(onStart).toHaveBeenCalledTimes(1);
   });
 
-  it("shows the 35–0 odds for every difficulty", () => {
+  it("offers all three difficulties", () => {
     render(<NewRunForm hasRunInProgress={false} onStart={() => {}} />);
-    expect(screen.getAllByText(/35–0 odds/)).toHaveLength(3);
+    expect(screen.getAllByRole("radio").map((r) => (r as HTMLInputElement).value)).toEqual(["easy", "normal", "hard"]);
   });
 });
 

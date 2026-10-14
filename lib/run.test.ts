@@ -10,6 +10,7 @@ import {
   outcomeOf,
   PHASE_ROUTES,
   runPhase,
+  runStatusLine,
   startPlayoffs,
   startRun,
   startSeason,
@@ -75,6 +76,13 @@ describe("phases", () => {
     const run = newRun(3);
     expect(() => startSeason(run)).toThrow(/draft/);
     expect(() => startPlayoffs(finishDraft(run, data))).toThrow(/season/);
+  });
+
+  it("describes where the run is for the Continue button", () => {
+    const run = newRun(5);
+    expect(runStatusLine(run)).toBe(`Normal · Pick ${run.draft.picks.length + 1} of 176`);
+    const midSeason = finishDraft(run, data);
+    expect(runStatusLine(midSeason)).toBe("Normal · Matchday 0 of 30 · 0W 0D 0L");
   });
 
   it("maps every phase to a screen", () => {
