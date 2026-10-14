@@ -77,6 +77,13 @@ export function turnAt(state: DraftState, pickNumber: number): PickTurn {
   return { pickNumber, round, teamIndex };
 }
 
+// Every pick number a team gets, in order (e.g. 7, 26, 39, … for the 7th pick).
+export function picksForTeam(state: DraftState, teamIndex: number): number[] {
+  const picks: number[] = [];
+  for (let n = 1; n <= totalPicks(state); n++) if (turnAt(state, n).teamIndex === teamIndex) picks.push(n);
+  return picks;
+}
+
 export function totalPicks(state: DraftState): number {
   return state.teams.length * state.rounds;
 }

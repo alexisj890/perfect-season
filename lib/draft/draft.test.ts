@@ -12,6 +12,7 @@ import {
   lineupOf,
   makePick,
   openSlots,
+  picksForTeam,
   turnAt,
   userTeamIndex,
   type DraftState,
@@ -70,6 +71,11 @@ describe("snake order", () => {
     expect(turnAt(state, 17).teamIndex).toBe(15);
     expect(turnAt(state, 32).teamIndex).toBe(0);
     expect(turnAt(state, 33).teamIndex).toBe(0);
+  });
+
+  it("lists each team's pick numbers", () => {
+    expect(picksForTeam(state, 0)).toEqual([1, 32, 33, 64, 65, 96, 97, 128, 129, 160, 161]);
+    expect(picksForTeam(state, 6)).toEqual([7, 26, 39, 58, 71, 90, 103, 122, 135, 154, 167]);
   });
 
   it("gives every team exactly 11 picks", () => {
