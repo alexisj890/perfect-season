@@ -14,6 +14,7 @@ import { createPlayoffs, isPlayoffsComplete, playRestOfPlayoffs, type PlayoffSta
 import {
   createSeason,
   isSeasonComplete,
+  leagueMatchKey,
   leagueTable,
   playMatchday,
   playRestOfSeason,
@@ -169,4 +170,24 @@ export function runStatusLine(run: RunState): string {
 function ordinal(n: number): string {
   const suffix = n % 100 >= 11 && n % 100 <= 13 ? "th" : ["th", "st", "nd", "rd"][n % 10] ?? "th";
   return `${n}${suffix}`;
+}
+
+// One of the user's matches, by its id (see leagueMatchKey), with everything a
+// replay or ratings view needs. Null if there's no such played match.
+export function findUserMatch(run: RunState, data: GameData, key: string) {
+  if (!run.season) return null;
+  const me = userTeam(run);
+  const match = run.season.matches.find((m) => leagueMatchKey(m) === key);
+  if (!match?.result || (match.home !== me && match.away !== me)) return null;
+  const profiles = teamProfiles(run, data);
+  return {
+    key,
+    title: `Matchday ${match.matchday}`,
+    result: match.result,
+    home: profiles[match.home],
+    away: profiles[match.away],
+    homeName: run.draft.teams[match.home].name,
+    awayName: run.draft.teams[match.away].name,
+    userSide: match.home === me ? ("home" as const) : ("away" as const),
+  };
 }

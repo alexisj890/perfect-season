@@ -16,6 +16,7 @@ interface Props {
   outcome: FormLetter;
   playersById: Map<string, Player>;
   onOpenRatings: () => void;
+  onReplay?: () => void;
   ratingsButtonRef?: Ref<HTMLButtonElement>;
 }
 
@@ -49,7 +50,7 @@ export function timeline(result: MatchResult): TimelineRow[] {
 }
 
 export function LastResultCard(props: Props) {
-  const { matchday, homeName, awayName, userSide, result, outcome, playersById, onOpenRatings, ratingsButtonRef } = props;
+  const { matchday, homeName, awayName, userSide, result, outcome, playersById, onOpenRatings, onReplay, ratingsButtonRef } = props;
   const name = (id: string) => playersById.get(id)?.name ?? id;
   const stats = matchStats(result);
   const statRows: [string, keyof typeof stats.home][] = [
@@ -71,6 +72,18 @@ export function LastResultCard(props: Props) {
       <div className="flex items-center justify-between text-xs font-semibold uppercase tracking-wide text-muted">
         <span>Last result · Matchday {matchday}</span>
         <span className="flex items-center gap-2">
+          {onReplay && (
+            <button
+              type="button"
+              onClick={(event) => {
+                event.stopPropagation();
+                onReplay();
+              }}
+              className="rounded-full border border-border px-2 py-0.5 text-[11px] normal-case tracking-normal text-muted hover:border-accent hover:text-foreground"
+            >
+              Replay ›
+            </button>
+          )}
           <button
             ref={ratingsButtonRef}
             type="button"

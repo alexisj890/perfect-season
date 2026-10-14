@@ -6,6 +6,7 @@ import type { FormationSlot, Player } from "@/lib/data/types";
 import type { PlayerRating } from "@/lib/engine/ratings";
 import type { Side } from "@/lib/engine/match";
 import { surname } from "@/components/draft/draftView";
+import { HorizontalPitchMarkings } from "@/components/ui/HorizontalPitch";
 import { RatingBadge } from "./RatingBadge";
 
 interface Props {
@@ -78,17 +79,7 @@ export function RatingsPitch({ slots, home, away, userSide, playersById }: Props
       aria-label="Both line-ups with their match ratings"
     >
       <svg viewBox="0 0 105 68" className="absolute inset-0 h-full w-full" preserveAspectRatio="none" aria-hidden="true">
-        <rect width={105} height={68} className="fill-pitch" />
-        {Array.from({ length: 7 }, (_, i) => (
-          <rect key={i} x={i * 15} width={7.5} height={68} fill="white" opacity={0.035} />
-        ))}
-        <g className="stroke-pitch-line" fill="none" strokeWidth={0.35} opacity={0.7}>
-          <rect x={1.5} y={1.5} width={102} height={65} />
-          <line x1={52.5} y1={1.5} x2={52.5} y2={66.5} />
-          <circle cx={52.5} cy={34} r={9.15} />
-          <rect x={1.5} y={13.85} width={16.5} height={40.3} />
-          <rect x={87} y={13.85} width={16.5} height={40.3} />
-        </g>
+        <HorizontalPitchMarkings />
       </svg>
       {home.map(marker)}
       {away.map(marker)}

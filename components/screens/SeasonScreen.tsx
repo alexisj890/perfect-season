@@ -116,6 +116,11 @@ export function SeasonScreen({ data }: { data: GameData }) {
               home={line(next.home)}
               away={line(next.away)}
               onPlay={() => update(playLeague(run, data, "matchday"))}
+              onWatch={() => {
+                // Play the matchday (the result is decided now), then watch it unfold.
+                update(playLeague(run, data, "matchday"));
+                router.push(`/match/${leagueMatchKey(next)}`);
+              }}
             />
           ) : (
             <SeasonComplete
@@ -153,6 +158,7 @@ export function SeasonScreen({ data }: { data: GameData }) {
               outcome={resultFor(last, me)}
               playersById={playersById}
               onOpenRatings={() => setRatingsOpen(true)}
+              onReplay={() => router.push(`/match/${leagueMatchKey(last)}`)}
               ratingsButtonRef={ratingsButton}
             />
           ) : (

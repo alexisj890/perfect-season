@@ -16,9 +16,10 @@ interface Props {
   home: TeamLine;
   away: TeamLine;
   onPlay: () => void;
+  onWatch: () => void;
 }
 
-export function NextMatchCard({ matchday, home, away, onPlay }: Props) {
+export function NextMatchCard({ matchday, home, away, onPlay, onWatch }: Props) {
   const venue = home.isUser ? "Home" : "Away";
   return (
     <section className="flex flex-col gap-3 rounded-xl border border-border bg-surface p-4" aria-label="Next match">
@@ -49,9 +50,9 @@ export function NextMatchCard({ matchday, home, away, onPlay }: Props) {
         </button>
         <button
           type="button"
-          disabled
-          title="Match replays are coming in the next update"
-          className="rounded-full border border-border px-4 py-2 text-sm text-muted opacity-60"
+          onClick={onWatch}
+          title="Play the matchday and watch your match"
+          className="rounded-full border border-border px-4 py-2 text-sm font-semibold hover:border-accent"
         >
           Watch
         </button>

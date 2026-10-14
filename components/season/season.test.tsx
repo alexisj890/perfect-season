@@ -47,13 +47,15 @@ describe("LeagueTable", () => {
 });
 
 describe("NextMatchCard", () => {
-  it("plays the match, and keeps Watch disabled until replays exist", () => {
+  it("plays the match, or plays it and opens the replay", () => {
     const onPlay = vi.fn();
     const line = { name: "A", position: 1, rating: 90, form: [], isUser: true };
-    render(<NextMatchCard matchday={4} home={line} away={{ ...line, name: "B", isUser: false }} onPlay={onPlay} />);
+    const onWatch = vi.fn();
+    render(<NextMatchCard matchday={4} home={line} away={{ ...line, name: "B", isUser: false }} onPlay={onPlay} onWatch={onWatch} />);
     fireEvent.click(screen.getByRole("button", { name: "Play match" }));
     expect(onPlay).toHaveBeenCalled();
-    expect((screen.getByRole("button", { name: "Watch" }) as HTMLButtonElement).disabled).toBe(true);
+    fireEvent.click(screen.getByRole("button", { name: "Watch" }));
+    expect(onWatch).toHaveBeenCalled();
     expect(screen.getByText("Home")).toBeTruthy();
   });
 });
