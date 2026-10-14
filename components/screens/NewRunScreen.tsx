@@ -5,7 +5,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useLayoutEffect, useState } from "react";
 import { DraftReveal } from "@/components/home/DraftReveal";
 import { NewRunForm } from "@/components/home/NewRunForm";
 import { useSavedRun } from "@/components/useSavedRun";
@@ -19,6 +19,11 @@ export function NewRunScreen({ data }: { data: GameData }) {
   const { run, update } = useSavedRun();
   const [revealing, setRevealing] = useState<RunState | null>(null);
   const inProgress = run !== null && runPhase(run) !== "finished";
+
+  // Next.js keeps this page alive in the background after you leave it. Close
+  // the reveal when it's hidden, so coming back later shows a fresh form rather
+  // than the old run's reveal.
+  useLayoutEffect(() => () => setRevealing(null), []);
 
   function start({ teamName, difficulty }: { teamName: string; difficulty: Difficulty }) {
     const next = startRun(data, {

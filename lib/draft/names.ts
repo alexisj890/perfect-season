@@ -54,12 +54,17 @@ export const TEAM_NAMES: Record<DraftStyle, string[]> = {
   ],
 };
 
-// One name per computer team, never repeated within a league.
+// One name per computer team, never repeated within a league. A team gets a
+// name from its style's list; if that list is used up (a league can have more
+// teams of one style than there are names), it borrows an unused name from
+// another list. Styles are hidden from the player, so names are only flavour.
 export function pickTeamNames(styles: DraftStyle[], rng: Rng): string[] {
   const used = new Set<string>();
-  return styles.map((style, i) => {
-    const left = TEAM_NAMES[style].filter((n) => !used.has(n));
-    const name = left.length > 0 ? left[randomInt(rng, 0, left.length - 1)] : `${TEAM_NAMES[style][0]} ${i + 1}`;
+  const everyName = Object.values(TEAM_NAMES).flat();
+  return styles.map((style) => {
+    let left = TEAM_NAMES[style].filter((n) => !used.has(n));
+    if (left.length === 0) left = everyName.filter((n) => !used.has(n));
+    const name = left[randomInt(rng, 0, left.length - 1)];
     used.add(name);
     return name;
   });

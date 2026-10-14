@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { loadGameData } from "@/lib/data/load";
-import { TEAM_NAMES } from "@/lib/draft/names";
+import { pickTeamNames, TEAM_NAMES } from "@/lib/draft/names";
+import { createRng } from "@/lib/rng";
+import { autoDraft } from "@/lib/draft/cpu";
 import { currentTurn, isComplete } from "@/lib/draft/draft";
 import { nextMatchday } from "@/lib/season/season";
 import {
@@ -42,6 +44,14 @@ describe("startRun", () => {
       if (!team.isUser) expect(TEAM_NAMES[team.style!]).toContain(team.name);
     }
   });
+
+  it("borrows names from other styles rather than numbering them when one style runs out", () => {
+    const styles = Array.from({ length: 15 }, () => "starChaser" as const);
+    const names = pickTeamNames(styles, createRng(1));
+    expect(new Set(names).size).toBe(15);
+    expect(names.every((n) => !/\d/.test(n))).toBe(true);
+    expect(names.filter((n) => TEAM_NAMES.starChaser.includes(n))).toHaveLength(TEAM_NAMES.starChaser.length);
+  });
 });
 
 describe("phases", () => {
@@ -81,6 +91,8 @@ describe("phases", () => {
   it("describes where the run is for the Continue button", () => {
     const run = newRun(5);
     expect(runStatusLine(run)).toBe(`Normal · Pick ${run.draft.picks.length + 1} of 176`);
+    const drafted = { ...run, draft: autoDraft(run.draft, data) };
+    expect(runStatusLine(drafted)).toBe("Normal · Draft complete");
     const midSeason = finishDraft(run, data);
     expect(runStatusLine(midSeason)).toBe("Normal · Matchday 0 of 30 · 0W 0D 0L");
   });

@@ -3,7 +3,7 @@ import { loadGameData } from "@/lib/data/load";
 import { buildTeam } from "@/lib/engine/team";
 import { createRng } from "@/lib/rng";
 import { DRAFT } from "./config";
-import { autoDraft, chooseOption, drafterFor, runCpuPicks } from "./cpu";
+import { autoDraft, BEST_AVAILABLE, chooseOption, drafterFor, pickOnce, runCpuPicks } from "./cpu";
 import {
   availablePlayers,
   createDraft,
@@ -264,5 +264,28 @@ describe("difficulty", () => {
       return total;
     };
     expect(strength("hard")).toBeGreaterThan(strength("easy"));
+  });
+});
+
+describe("pickOnce", () => {
+  it("makes exactly one pick and repeats for the same state", () => {
+    const start = createDraft(data, 3);
+    const next = pickOnce(start, data);
+    expect(next.picks).toHaveLength(1);
+    expect(next.rngState).not.toBe(start.rngState);
+    expect(pickOnce(start, data)).toEqual(next);
+  });
+
+  it("plays computer picks out one by one, ending where runCpuPicks ends", () => {
+    let state = createDraft(data, 6);
+    while (currentTurn(state)!.teamIndex !== userTeamIndex(state)) state = pickOnce(state, data);
+    expect(state).toEqual(runCpuPicks(createDraft(data, 6), data));
+  });
+
+  it("auto-picks the best-rated player available for an open slot", () => {
+    const state = runCpuPicks(createDraft(data, 2), data);
+    const best = scoreOptions(state, data, userTeamIndex(state), "ignoresChemistry")[0];
+    const next = pickOnce(state, data, BEST_AVAILABLE);
+    expect(next.picks.at(-1)).toMatchObject({ playerId: best.playerId, slot: best.slot, teamIndex: userTeamIndex(state) });
   });
 });

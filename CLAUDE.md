@@ -54,10 +54,12 @@ A soccer team-draft web game inspired by 82-0. Sixteen all-time club XIs (1960s�
 - Day / night theme toggle. Colours are CSS variables in `app/globals.css` (navy night, cool-grey day, gold accent).
 - Fonts: Barlow everywhere; Barlow Condensed 800 only for the landing page's "35–0". Tabular numbers for stats.
 - Landing page: calm and minimal — header (logo, account status, theme icon), "35–0" with 35 dots that fill in on load (the page's only animation; skipped with reduced motion), tagline, one main button (Continue [team] or Start a run), footer with data facts and the penalty practice modal.
-- Computer teams are named after their drafting style.
+- Computer teams are named after their drafting style, but styles are never shown to the player (names borrow from other styles' lists if one runs out).
+- Draft room: computer picks play out one by one (300ms, skippable); ratings shown as whole numbers; pick by selecting a player, then a slot (on the pitch or the best-first fit chips).
 - Watching a match replay is optional; simulating is always available.
 - One URL per screen: `/` (landing), `/new` (team name + difficulty), `/draft`, `/season`, `/match/[id]`, `/playoffs`, `/end`. Pages (`app/`) load the CSV data on the server via `lib/data/gameData.ts` and pass it down; game screens (`components/screens/`) are client components that read the run from browser storage with `useSavedRun` (inside `<Suspense>`, using React's `use(browser())`).
 - The whole attempt is one `RunState` (`lib/run.ts`); its phase is derived, never stored. `useRequirePhase` redirects to the right screen.
+- Next.js keeps up to 3 visited pages alive in the background (Activity, from `cacheComponents`) and restores their state. So: the saved run is one shared store (`useSavedRun`, built on `useSyncExternalStore`) rather than per-page state, and one-off UI like dialogs or confirmation messages resets itself when its page is hidden (`useLayoutEffect` cleanup).
 - Add `?dev` to any URL for the dev panel (finish draft / season / playoffs, delete run).
 - Component tests: `*.test.tsx` with `// @vitest-environment jsdom` and React Testing Library.
 

@@ -56,3 +56,16 @@ function autoPick(
   }
   return { ...next, rngState: rng.state() };
 }
+
+// How the user's Auto-pick button drafts: the best-rated player for an open slot.
+export const BEST_AVAILABLE: Drafter = { style: "ignoresChemistry", candidates: 1, temperature: 1 };
+
+// Makes exactly one pick for the team on the clock, using `drafter` (default:
+// that team's computer drafter). Lets the UI play computer picks out one by one.
+export function pickOnce(state: DraftState, data: GameData, drafter?: Drafter): DraftState {
+  const turn = currentTurn(state);
+  if (!turn) throw new Error("The draft is already complete");
+  const rng = createRng(state.rngState);
+  const choice = chooseOption(state, data, drafter ?? drafterFor(state, turn.teamIndex), rng);
+  return { ...makePick(state, data, choice.playerId, choice.slot), rngState: rng.state() };
+}

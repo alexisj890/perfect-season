@@ -3,7 +3,7 @@
 // Team name + difficulty, then Start. If a run is already in progress, asks
 // for confirmation before replacing it.
 
-import { useState } from "react";
+import { useLayoutEffect, useState } from "react";
 import type { Difficulty } from "@/lib/draft/config";
 import { DIFFICULTIES } from "./difficulties";
 
@@ -19,6 +19,10 @@ export function NewRunForm({ hasRunInProgress, onStart }: Props) {
   const [difficulty, setDifficulty] = useState<Difficulty>("normal");
   const [confirming, setConfirming] = useState(false);
 
+  // When the page is hidden (Next.js keeps it alive in the background), drop a
+  // half-finished "replace your run?" confirmation so it isn't shown stale later.
+  useLayoutEffect(() => () => setConfirming(false), []);
+
   function submit(event: React.FormEvent) {
     event.preventDefault();
     if (hasRunInProgress && !confirming) {
@@ -26,6 +30,9 @@ export function NewRunForm({ hasRunInProgress, onStart }: Props) {
       return;
     }
     onStart({ teamName: teamName.trim() || "Your XI", difficulty });
+    // Start fresh next time this form is shown.
+    setTeamName("");
+    setConfirming(false);
   }
 
   return (

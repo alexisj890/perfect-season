@@ -124,6 +124,7 @@ export function runSummary(run: RunState): string {
   const phase = runPhase(run);
   if (phase === "draft") {
     const total = run.draft.teams.length * run.draft.rounds;
+    if (run.draft.picks.length >= total) return "Draft complete";
     return `Pick ${run.draft.picks.length + 1} of ${total}`;
   }
   if (phase === "season") {
