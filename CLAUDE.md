@@ -14,6 +14,7 @@ A soccer team-draft web game inspired by 82-0. Sixteen all-time club XIs (1960s�
 - `npm run lint` — run ESLint
 - `npm test` — run the Vitest tests once (`npm run test:watch` re-runs them on every save)
 - `npm run sim -- "Barcelona" "Real Madrid" [seed] [--final]` — play two club XIs and print the match
+- `npm run season -- [seed] [easy|normal|hard]` — auto-draft a league, play the 30-matchday season, print the table and top scorers
 - `npm run odds -- [--drafts 20] [--seasons 400] [--difficulty normal]` — Monte Carlo: win rates and 35–0 odds for strong/average/weak drafts. Rerun after any engine or draft tuning change.
 
 ## Data
@@ -26,7 +27,7 @@ A soccer team-draft web game inspired by 82-0. Sixteen all-time club XIs (1960s�
 ## Game rules
 - **Draft:** 16-team snake draft (order reverses each round) from one shared pool; a drafted player is gone. No salary cap. The user gets a random draft position. Each pick must fill an open 4-3-3 slot (any player, any open slot; fit penalties apply). The pool is exactly 16 × 11, so every player is drafted.
 - **Computer drafters and difficulty:** each computer team gets a style — balanced (best available + chemistry), ignores chemistry, star-chaser (biggest name, even out of position), panic-fill (rushes scarce slots) — plus randomness. The player picks Easy / Normal / Hard, which sets the style mix and how sloppy the computer is (`lib/draft/config.ts`). Targets: a strong draft goes 35–0 about 9% / 2.5% / 0.3% of the time (Easy / Normal / Hard).
-- **League:** home and away, 30 matchdays. 3 points for a win, 1 for a draw. Tiebreaks: goal difference, then goals scored.
+- **League:** home and away, 30 matchdays (double round-robin, circle method; matchdays 16–30 mirror 1–15 with venues swapped; no team plays three home or away games in a row). 3 points for a win, 1 for a draw. Tiebreaks: goal difference, then goals scored, then team index (draft position) as a last resort.
 - **Playoffs:** top 8 (1v8, 2v7, 3v6, 4v5). Quarter-finals and semi-finals are two legs; the higher seed hosts the second leg. Aggregate ties go to extra time, then penalties (no away goals). The final is one match at a neutral venue, with extra time and penalties.
 - **Perfect season:** win all 35 matches (30 league + 4 knockout legs + final). A match counts as a win if the user scores more in it (extra time included) or wins its penalty shootout. A two-legged tie counts as two wins whenever the user goes through, even after losing or drawing one leg.
 - **Position fit:** players may be drafted into any slot. Tiers in `position_fit.csv`: Natural, Secondary, Similar (`position_similarity.csv`), Out of position, Goalkeeper swap. Rating = `weighted_score` × the fit multiplier for the slot they're actually playing (not the CSV's `effective_rating`, which is for their original slot).
@@ -45,6 +46,7 @@ A soccer team-draft web game inspired by 82-0. Sixteen all-time club XIs (1960s�
 - Formations live in data, never hard-coded.
 - Game state (draft, season, playoffs) must be serializable so a run can be saved and resumed.
 - Saves store match results, never just a seed to replay: any engine change alters what a seed produces, so replaying would rewrite past results.
+- To keep saves small, the user's matches keep every event (for the replay); other matches keep only their goals.
 - Leave room for accounts later (nullable `user_id`), but don't build them yet.
 
 ## Ideas parked for later
