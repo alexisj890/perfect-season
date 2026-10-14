@@ -4,7 +4,8 @@
 // and the perfect-season tracker. Sized to the window like the draft room.
 
 import { useRouter } from "next/navigation";
-import { useMemo } from "react";
+import { useLayoutEffect, useMemo, useRef, useState } from "react";
+import { MatchRatingsModal } from "@/components/ratings/MatchRatingsModal";
 import { DevPanel } from "@/components/DevPanel";
 import { PerfectTracker } from "@/components/PerfectTracker";
 import { LastResultCard } from "@/components/season/LastResultCard";
@@ -21,7 +22,8 @@ import { PLAYOFF_TEAMS } from "@/lib/playoffs/playoffs";
 import { lineupOf } from "@/lib/draft/draft";
 import { buildTeam } from "@/lib/engine/team";
 import { PHASE_ROUTES, playLeague, runPhase, startPlayoffs, userTeam } from "@/lib/run";
-import { leagueTable, matchdayCount, teamRecord, topScorers } from "@/lib/season/season";
+import { matchRatings, seasonPlayerStats } from "@/lib/engine/ratings";
+import { leagueMatchKey, leagueTable, matchdayCount, matchesOf, teamRecord, topScorers } from "@/lib/season/season";
 
 const SEASON_ROOM_HEIGHT = "max(100dvh - 14rem, 30rem)";
 
@@ -33,6 +35,10 @@ export function SeasonScreen({ data }: { data: GameData }) {
   const draft = run?.draft;
   // Team profiles only depend on the draft, so build them once per draft.
   const profiles = useMemo(() => (draft ? draft.teams.map((_, i) => buildTeam(lineupOf(draft, i), data)) : []), [draft, data]);
+  const [ratingsOpen, setRatingsOpen] = useState(false);
+  const ratingsButton = useRef<HTMLButtonElement>(null);
+  // Next.js keeps this page alive in the background; close the pop-up when it's hidden.
+  useLayoutEffect(() => () => setRatingsOpen(false), []);
 
   if (!ready || !run || !run.season) return null;
   const season = run.season;
@@ -48,6 +54,13 @@ export function SeasonScreen({ data }: { data: GameData }) {
   const latest = latestMatchday(season);
   const next = nextMatchFor(season, me);
   const last = lastMatchFor(season, me);
+  const ratingsFor = (m: NonNullable<typeof last>) =>
+    matchRatings(m.result!, profiles[m.home], profiles[m.away], leagueMatchKey(m));
+  const myPlayed = matchesOf(season, me).filter((m) => m.result);
+  const squad = seasonPlayerStats(
+    profiles[me],
+    myPlayed.map((m) => ({ ratings: ratingsFor(m), side: m.home === me ? ("home" as const) : ("away" as const) })),
+  );
 
   const line = (team: number): TeamLine => ({
     name: names[team],
@@ -123,6 +136,7 @@ export function SeasonScreen({ data }: { data: GameData }) {
             names={names}
             user={me}
             playersById={playersById}
+            squad={squad}
           />
         </div>
 
@@ -138,6 +152,8 @@ export function SeasonScreen({ data }: { data: GameData }) {
               result={last.result!}
               outcome={resultFor(last, me)}
               playersById={playersById}
+              onOpenRatings={() => setRatingsOpen(true)}
+              ratingsButtonRef={ratingsButton}
             />
           ) : (
             <section className="flex h-full items-center justify-center rounded-xl border border-dashed border-border p-5 text-center text-sm text-muted">
@@ -146,6 +162,21 @@ export function SeasonScreen({ data }: { data: GameData }) {
           )}
         </div>
       </div>
+      {last && ratingsOpen && (
+        <MatchRatingsModal
+          open
+          onClose={() => setRatingsOpen(false)}
+          returnFocusTo={ratingsButton}
+          title={`Matchday ${last.matchday}`}
+          homeName={names[last.home]}
+          awayName={names[last.away]}
+          userSide={last.home === me ? "home" : "away"}
+          result={last.result!}
+          ratings={ratingsFor(last)}
+          slots={data.formation.slots}
+          playersById={playersById}
+        />
+      )}
       <DevPanel data={data} run={run} update={update} clear={clear} />
     </div>
   );

@@ -6,6 +6,11 @@ import { loadGameData } from "@/lib/data/load";
 import { finishDraft, playLeague, startRun, userTeam } from "@/lib/run";
 import { leagueTable, topScorers } from "@/lib/season/season";
 import { PerfectTracker } from "@/components/PerfectTracker";
+import { MatchRatingsModal } from "@/components/ratings/MatchRatingsModal";
+import { buildTeam } from "@/lib/engine/team";
+import { lineupOf } from "@/lib/draft/draft";
+import { matchRatings, seasonPlayerStats } from "@/lib/engine/ratings";
+import { leagueMatchKey, matchesOf } from "@/lib/season/season";
 import type { MatchResult } from "@/lib/engine/match";
 import { LastResultCard, timeline } from "./LastResultCard";
 import { LeagueTable } from "./LeagueTable";
@@ -63,13 +68,14 @@ describe("SidePanel", () => {
         names={names}
         user={me}
         playersById={playersById}
+        squad={[]}
       />,
     );
     expect(screen.getByText("Matchday 3")).toBeTruthy();
     expect(within(screen.getByRole("list", { name: "Matchday 3 results" })).getAllByRole("listitem")).toHaveLength(8);
     fireEvent.click(screen.getByRole("button", { name: "Previous matchday" }));
     expect(screen.getByText("Matchday 2")).toBeTruthy();
-    fireEvent.click(screen.getByRole("tab", { name: "Top scorers" }));
+    fireEvent.click(screen.getByRole("tab", { name: "Scorers" }));
     expect(screen.getByRole("list", { name: "Top scorers" })).toBeTruthy();
   });
 });
@@ -87,6 +93,7 @@ describe("LastResultCard", () => {
         result={result}
         outcome="W"
         playersById={playersById}
+        onOpenRatings={() => {}}
       />,
     );
     const goals = within(screen.getByRole("list", { name: "Goals" })).getAllByRole("listitem");
@@ -117,5 +124,69 @@ describe("timeline", () => {
     } as MatchResult;
     const rows = timeline(fake).map((r) => (r.kind === "marker" ? `${r.label} ${r.home}-${r.away}` : `goal ${r.home}-${r.away}`));
     expect(rows).toEqual(["goal 1-0", "HT 1-0", "goal 1-1", "goal 2-1", "FT 2-1"]);
+  });
+});
+
+describe("player ratings", () => {
+  const profiles = run.draft.teams.map((_, i) => buildTeam(lineupOf(run.draft, i), data));
+  const mine = matchesOf(season, me).filter((m) => m.result);
+  const last = mine.at(-1)!;
+  const ratings = matchRatings(last.result!, profiles[last.home], profiles[last.away], leagueMatchKey(last));
+
+  it("opens from a click anywhere on the last result card, or its button", () => {
+    const onOpen = vi.fn();
+    render(
+      <LastResultCard
+        matchday={last.matchday}
+        homeName={names[last.home]}
+        awayName={names[last.away]}
+        userSide={last.home === me ? "home" : "away"}
+        result={last.result!}
+        outcome="W"
+        playersById={playersById}
+        onOpenRatings={onOpen}
+      />,
+    );
+    fireEvent.click(screen.getByRole("region", { name: "Last result" }));
+    fireEvent.click(screen.getByRole("button", { name: "Player ratings ›" }));
+    expect(onOpen).toHaveBeenCalledTimes(2);
+  });
+
+  it("shows both line-ups rated, with one Man of the Match", () => {
+    render(
+      <MatchRatingsModal
+        open
+        onClose={() => {}}
+        title="Matchday 3"
+        homeName={names[last.home]}
+        awayName={names[last.away]}
+        userSide={last.home === me ? "home" : "away"}
+        result={last.result!}
+        ratings={ratings}
+        slots={data.formation.slots}
+        playersById={playersById}
+      />,
+    );
+    const dialog = screen.getByRole("dialog", { name: "Player ratings · Matchday 3" });
+    for (const name of [names[last.home], names[last.away]]) {
+      expect(within(dialog).getByRole("region", { name: `${name} ratings` }).querySelectorAll("li")).toHaveLength(11);
+    }
+    expect(within(dialog).getByText(/Man of the Match:/).textContent).toContain(playersById.get(ratings.motm)!.name);
+  });
+
+  it("lists the user's squad with season averages in the Squad tab", () => {
+    const squad = seasonPlayerStats(
+      profiles[me],
+      mine.map((m) => ({
+        ratings: matchRatings(m.result!, profiles[m.home], profiles[m.away], leagueMatchKey(m)),
+        side: m.home === me ? ("home" as const) : ("away" as const),
+      })),
+    );
+    render(
+      <SidePanel latestMatchday={3} matchesOn={(d) => matchesOn(season, d)} scorers={[]} names={names} user={me} playersById={playersById} squad={squad} />,
+    );
+    fireEvent.click(screen.getByRole("tab", { name: "Squad" }));
+    expect(within(screen.getByRole("list", { name: "Squad season ratings" })).getAllByRole("listitem")).toHaveLength(11);
+    expect(screen.getByText(/3 matches/)).toBeTruthy();
   });
 });

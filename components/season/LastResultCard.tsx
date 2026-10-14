@@ -2,6 +2,7 @@
 // team's side of a timeline with the running score in the middle, then
 // side-by-side stats with split bars (the user's share in gold).
 
+import type { Ref } from "react";
 import type { Player } from "@/lib/data/types";
 import { formatClock, goalsOf, matchStats, type MatchResult, type ShotEvent, type Side } from "@/lib/engine/match";
 import { FORM_STYLE, type FormLetter } from "./seasonView";
@@ -14,6 +15,8 @@ interface Props {
   result: MatchResult;
   outcome: FormLetter;
   playersById: Map<string, Player>;
+  onOpenRatings: () => void;
+  ratingsButtonRef?: Ref<HTMLButtonElement>;
 }
 
 type TimelineRow =
@@ -45,7 +48,8 @@ export function timeline(result: MatchResult): TimelineRow[] {
   return rows;
 }
 
-export function LastResultCard({ matchday, homeName, awayName, userSide, result, outcome, playersById }: Props) {
+export function LastResultCard(props: Props) {
+  const { matchday, homeName, awayName, userSide, result, outcome, playersById, onOpenRatings, ratingsButtonRef } = props;
   const name = (id: string) => playersById.get(id)?.name ?? id;
   const stats = matchStats(result);
   const statRows: [string, keyof typeof stats.home][] = [
@@ -57,10 +61,29 @@ export function LastResultCard({ matchday, homeName, awayName, userSide, result,
   const teamClass = (side: Side) => (side === userSide ? "text-accent" : "");
 
   return (
-    <section className="flex flex-col gap-4 rounded-xl border border-border bg-surface p-5" aria-label="Last result">
+    // Clicking anywhere on the card opens the player ratings; the button in the
+    // header does the same for keyboard users.
+    <section
+      onClick={onOpenRatings}
+      className="flex cursor-pointer flex-col gap-4 rounded-xl border border-border bg-surface p-5 hover:border-accent/60"
+      aria-label="Last result"
+    >
       <div className="flex items-center justify-between text-xs font-semibold uppercase tracking-wide text-muted">
         <span>Last result · Matchday {matchday}</span>
-        <span className={`rounded px-1.5 py-0.5 text-[11px] ${FORM_STYLE[outcome]}`}>{outcome}</span>
+        <span className="flex items-center gap-2">
+          <button
+            ref={ratingsButtonRef}
+            type="button"
+            onClick={(event) => {
+              event.stopPropagation();
+              onOpenRatings();
+            }}
+            className="rounded-full border border-border px-2 py-0.5 text-[11px] normal-case tracking-normal text-muted hover:border-accent hover:text-foreground"
+          >
+            Player ratings ›
+          </button>
+          <span className={`rounded px-1.5 py-0.5 text-[11px] ${FORM_STYLE[outcome]}`}>{outcome}</span>
+        </span>
       </div>
 
       {/* Scoreboard */}

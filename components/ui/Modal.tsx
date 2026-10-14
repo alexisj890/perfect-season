@@ -12,12 +12,13 @@ interface Props {
   title: string;
   headerExtra?: ReactNode; // shown beside the title (e.g. stats)
   returnFocusTo?: RefObject<HTMLElement | null>;
+  wide?: boolean; // for content like a full pitch
   children: ReactNode;
 }
 
 const FOCUSABLE = 'button:not([disabled]), [href], input:not([disabled]), select, textarea, [tabindex]:not([tabindex="-1"])';
 
-export function Modal({ open, onClose, title, headerExtra, returnFocusTo, children }: Props) {
+export function Modal({ open, onClose, title, headerExtra, returnFocusTo, wide = false, children }: Props) {
   const titleId = useId();
   const dialogRef = useRef<HTMLDivElement>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
@@ -69,7 +70,9 @@ export function Modal({ open, onClose, title, headerExtra, returnFocusTo, childr
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
-        className="flex w-full max-w-3xl flex-col gap-4 rounded-2xl border border-border bg-surface p-6 shadow-2xl"
+        className={`flex max-h-[calc(100dvh-4rem)] w-full flex-col gap-4 overflow-y-auto rounded-2xl border border-border bg-surface p-6 shadow-2xl ${
+          wide ? "max-w-5xl" : "max-w-3xl"
+        }`}
       >
         <div className="flex items-center justify-between gap-4">
           <h2 id={titleId} className="text-lg font-semibold">

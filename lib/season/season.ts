@@ -76,6 +76,12 @@ export function leagueTable(state: SeasonState): TableRow[] {
   return standings(state.teamCount, played);
 }
 
+// A stable id for a league match, e.g. "league-4-2-9" (matchday 4, team 2 at home to team 9).
+// Used to look up its replay and to seed its player ratings.
+export function leagueMatchKey(match: Fixture): string {
+  return `league-${match.matchday}-${match.home}-${match.away}`;
+}
+
 export function matchesOf(state: SeasonState, team: number): LeagueMatch[] {
   return state.matches.filter((m) => m.home === team || m.away === team);
 }

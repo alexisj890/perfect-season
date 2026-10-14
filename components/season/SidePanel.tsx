@@ -3,7 +3,9 @@
 // Right-hand panel: results of any played matchday, or the top scorers.
 
 import { useState } from "react";
+import { RatingBadge } from "@/components/ratings/RatingBadge";
 import type { Player } from "@/lib/data/types";
+import type { SeasonPlayerStats } from "@/lib/engine/ratings";
 import type { LeagueMatch, ScorerRow } from "@/lib/season/season";
 
 interface Props {
@@ -13,10 +15,14 @@ interface Props {
   names: string[];
   user: number;
   playersById: Map<string, Player>;
+  squad: SeasonPlayerStats[]; // the user's players, best average first
 }
 
-export function SidePanel({ latestMatchday, matchesOn, scorers, names, user, playersById }: Props) {
-  const [tab, setTab] = useState<"results" | "scorers">("results");
+type Tab = "results" | "scorers" | "squad";
+const TAB_LABEL: Record<Tab, string> = { results: "Results", scorers: "Scorers", squad: "Squad" };
+
+export function SidePanel({ latestMatchday, matchesOn, scorers, names, user, playersById, squad }: Props) {
+  const [tab, setTab] = useState<Tab>("results");
   // null = follow the latest matchday as the season moves on.
   const [picked, setPicked] = useState<number | null>(null);
   const day = picked ?? latestMatchday;
@@ -24,7 +30,7 @@ export function SidePanel({ latestMatchday, matchesOn, scorers, names, user, pla
   return (
     <section className="flex min-h-0 flex-1 flex-col gap-3 rounded-xl border border-border bg-surface p-4" aria-label="Results and scorers">
       <div className="flex rounded-full border border-border p-0.5" role="tablist">
-        {(["results", "scorers"] as const).map((t) => (
+        {(["results", "scorers", "squad"] as const).map((t) => (
           <button
             key={t}
             role="tab"
@@ -32,12 +38,14 @@ export function SidePanel({ latestMatchday, matchesOn, scorers, names, user, pla
             onClick={() => setTab(t)}
             className={`flex-1 rounded-full px-3 py-1 text-xs font-semibold ${tab === t ? "bg-surface-2 text-foreground" : "text-muted hover:text-foreground"}`}
           >
-            {t === "results" ? "Results" : "Top scorers"}
+            {TAB_LABEL[t]}
           </button>
         ))}
       </div>
 
-      {tab === "results" ? (
+      {tab === "squad" ? (
+        <SquadList squad={squad} playersById={playersById} />
+      ) : tab === "results" ? (
         latestMatchday === 0 ? (
           <p className="text-sm text-muted">No matches played yet.</p>
         ) : (
@@ -99,5 +107,35 @@ export function SidePanel({ latestMatchday, matchesOn, scorers, names, user, pla
         </ol>
       )}
     </section>
+  );
+}
+
+// The user's players over the season: average rating, goals, assists and Man of the Match awards.
+function SquadList({ squad, playersById }: { squad: SeasonPlayerStats[]; playersById: Map<string, Player> }) {
+  const apps = squad[0]?.apps ?? 0;
+  if (apps === 0) return <p className="text-sm text-muted">Ratings appear after your first match.</p>;
+  return (
+    <div className="flex min-h-0 flex-col gap-1">
+      <div className="grid grid-cols-[2.5rem_1fr_1.5rem_1.5rem_1.5rem] gap-2 px-1 text-[11px] font-semibold text-muted">
+        <span>Avg</span>
+        <span>Player · {apps} {apps === 1 ? "match" : "matches"}</span>
+        <span className="text-right">G</span>
+        <span className="text-right">A</span>
+        <span className="text-right" title="Man of the Match awards">★</span>
+      </div>
+      <ol className="flex min-h-0 flex-col overflow-y-auto text-sm tabular-nums" aria-label="Squad season ratings">
+        {squad.map((s) => (
+          <li key={s.playerId} className="grid grid-cols-[2.5rem_1fr_1.5rem_1.5rem_1.5rem] items-center gap-2 border-b border-border/50 px-1 py-1 last:border-b-0">
+            <RatingBadge rating={s.averageRating} />
+            <span className="min-w-0 truncate">
+              {playersById.get(s.playerId)?.name} <span className="text-xs text-muted">{s.slot}</span>
+            </span>
+            <span className="text-right">{s.goals}</span>
+            <span className="text-right">{s.assists}</span>
+            <span className="text-right text-accent">{s.motm || ""}</span>
+          </li>
+        ))}
+      </ol>
+    </div>
   );
 }

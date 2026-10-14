@@ -38,6 +38,7 @@ A soccer team-draft web game inspired by 82-0. Sixteen all-time club XIs (1960s�
 - **Match difficulty:** rating gaps decide most matches (a good XI beats an average one ~86% of the time; mismatches have ~3% draws) while scorelines stay realistic (~3 goals between equal teams, ~4 in mismatches).
 - **End of run** (`runOutcome` in `lib/playoffs/outcome.ts`): missed the top 8 → "Relegated" screen. Lost in the knockouts → "Better luck next time". Won the final → trophy and roster recap.
 - **Match events:** the engine produces a timeline of shots (goal, saved, post, wide), corners, direct free kicks and in-match penalties, with scorers and assisters. Penalties and direct free kicks go to the most attacking player; corners to the best midfielder/winger. Each half has random stoppage time, shown as 90+3'. Shot and corner volume grow with the square root of expected goals (a dominant side takes ≈22 shots, not 40); goals still follow expected goals exactly.
+- **Player ratings:** 0–10 per player per match, worked out from the saved events (`lib/engine/ratings.ts`): goals, assists, shots on target, saves, clean sheets, result, plus a small fixed per-player wobble. Display only — never affects results. Highest rating is Man of the Match. Season averages feed the Squad tab (and later the end screens).
 - **Match animation:** the engine decides the result and the event timeline first; the UI replays it as dots on a 2D pitch.
 
 ## Code rules
