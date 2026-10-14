@@ -169,6 +169,12 @@ export function goalsOf(result: MatchResult): ShotEvent[] {
   return result.events.filter((e): e is ShotEvent => e.type === "shot" && e.outcome === "goal");
 }
 
+// The same result with only its goals kept (no shots or corners). Used to keep
+// saved games small for matches the user won't replay.
+export function keepGoalsOnly(result: MatchResult): MatchResult {
+  return { ...result, events: goalsOf(result) };
+}
+
 export interface SideStats {
   goals: number;
   shots: number;

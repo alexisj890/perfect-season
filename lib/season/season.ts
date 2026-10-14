@@ -3,7 +3,7 @@
 // results stored, so a season can be saved after any matchday and resumed.
 // Results are stored, never re-simulated from a seed (see CLAUDE.md).
 
-import { goalsOf, simulateMatch, type MatchResult } from "@/lib/engine/match";
+import { goalsOf, keepGoalsOnly, simulateMatch, type MatchResult } from "@/lib/engine/match";
 import type { TeamProfile } from "@/lib/engine/team";
 import { createRng } from "@/lib/rng";
 import { createFixtures, type Fixture } from "./fixtures";
@@ -58,14 +58,9 @@ export function playMatchday(state: SeasonState, teams: TeamProfile[]): SeasonSt
     if (m.matchday !== matchday) return m;
     const result = simulateMatch(teams[m.home], teams[m.away], rng);
     const involvesUser = m.home === state.userTeam || m.away === state.userTeam;
-    return { ...m, result: involvesUser ? result : goalsOnly(result) };
+    return { ...m, result: involvesUser ? result : keepGoalsOnly(result) };
   });
   return { ...state, matches, rngState: rng.state() };
-}
-
-// Drops shots and corners, keeping the score, goals and stoppage time.
-function goalsOnly(result: MatchResult): MatchResult {
-  return { ...result, events: result.events.filter((e) => e.type === "shot" && e.outcome === "goal") };
 }
 
 export function playRestOfSeason(state: SeasonState, teams: TeamProfile[]): SeasonState {
