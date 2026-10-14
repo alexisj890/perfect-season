@@ -1,9 +1,11 @@
+import { card } from "@/components/ui/card";
+
 // Sign-in section. Google sign-in arrives with database saves at the end of
 // Milestone 6; until then everyone plays as a guest.
 
 export function AccountPanel() {
   return (
-    <section className="flex flex-col gap-3 rounded-xl border border-border bg-surface p-5" aria-labelledby="account-heading">
+    <section className={`${card} flex flex-col gap-3`} aria-labelledby="account-heading">
       <h2 id="account-heading" className="font-semibold">
         Account
       </h2>

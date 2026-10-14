@@ -3,14 +3,14 @@
 /* `dark:` classes apply in the night theme (set on <html data-theme="night">). */
 @custom-variant dark (&:where([data-theme="night"], [data-theme="night"] *));
 
-/* Day: bright matchday afternoon. */
+/* Day: bright, cool greys. */
 [data-theme="day"] {
-  --background: #f3f6f1;
+  --background: #f2f5f9;
   --surface: #ffffff;
-  --surface-2: #e9f0e7;
-  --border: #d3dfd3;
-  --foreground: #0f1f17;
-  --muted: #5a7165;
+  --surface-2: #e8edf5;
+  --border: #d3dbe7;
+  --foreground: #0e1726;
+  --muted: #5a6780;
   --accent: #b88a00;
   --accent-foreground: #ffffff;
   --pitch: #1f8a4c;
@@ -18,17 +18,17 @@
   --danger: #c73b3b;
 }
 
-/* Night: stadium under floodlights (the default). */
+/* Night: cool dark blue (the default). */
 [data-theme="night"] {
-  --background: #06110c;
-  --surface: #0e1f17;
-  --surface-2: #142b20;
-  --border: #23402f;
-  --foreground: #e6f0e9;
-  --muted: #8ca697;
+  --background: #060b17;
+  --surface: #0c1527;
+  --surface-2: #132038;
+  --border: #22314d;
+  --foreground: #e5ecf7;
+  --muted: #8b9cba;
   --accent: #f5c518;
   --accent-foreground: #1a1400;
-  --pitch: #17663a;
+  --pitch: #17663a; /* the football pitch stays green in both themes */
   --pitch-line: #a9d8b9;
   --danger: #ff6b6b;
 }

@@ -7,8 +7,9 @@ import { useState } from "react";
 import { DevPanel } from "@/components/DevPanel";
 import { AccountPanel } from "@/components/home/AccountPanel";
 import { DraftReveal } from "@/components/home/DraftReveal";
-import { HowItWorks } from "@/components/home/HowItWorks";
+import { Hero } from "@/components/home/Hero";
 import { NewRunForm } from "@/components/home/NewRunForm";
+import { card } from "@/components/ui/card";
 import { useSavedRun } from "@/components/useSavedRun";
 import type { GameData } from "@/lib/data/types";
 import type { Difficulty } from "@/lib/draft/config";
@@ -39,13 +40,13 @@ export function HomeScreen({ data }: { data: GameData }) {
 
   return (
     <div className="grid grid-cols-[1.2fr_1fr] gap-12">
-      <HowItWorks />
+      <Hero />
 
       <div className="flex flex-col gap-5">
         <AccountPanel />
 
         {run && !revealing && (
-          <section className="flex items-center justify-between gap-4 rounded-xl border border-border bg-surface p-5">
+          <section className={`${card} flex items-center justify-between gap-4`}>
             <div>
               <div className="font-semibold">{run.draft.teams[userTeam(run)].name}</div>
               <div className="text-sm text-muted">
