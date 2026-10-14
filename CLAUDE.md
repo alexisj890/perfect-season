@@ -37,7 +37,7 @@ A soccer team-draft web game inspired by 82-0. Sixteen all-time club XIs (1960s�
 - **Home advantage:** home team's expected goals × 1.07. Neutral venue (the final): no boost for either side.
 - **Match difficulty:** rating gaps decide most matches (a good XI beats an average one ~86% of the time; mismatches have ~3% draws) while scorelines stay realistic (~3 goals between equal teams, ~4 in mismatches).
 - **End of run** (`runOutcome` in `lib/playoffs/outcome.ts`): missed the top 8 → "Relegated" screen. Lost in the knockouts → "Better luck next time". Won the final → trophy and roster recap.
-- **Match events:** the engine produces a timeline of shots (goal, saved, post, wide), corners, direct free kicks and in-match penalties, with scorers and assisters. Penalties and direct free kicks go to the most attacking player; corners to the best midfielder/winger. Each half has random stoppage time, shown as 90+3'.
+- **Match events:** the engine produces a timeline of shots (goal, saved, post, wide), corners, direct free kicks and in-match penalties, with scorers and assisters. Penalties and direct free kicks go to the most attacking player; corners to the best midfielder/winger. Each half has random stoppage time, shown as 90+3'. Shot and corner volume grow with the square root of expected goals (a dominant side takes ≈22 shots, not 40); goals still follow expected goals exactly.
 - **Match animation:** the engine decides the result and the event timeline first; the UI replays it as dots on a 2D pitch.
 
 ## Code rules
@@ -58,7 +58,8 @@ A soccer team-draft web game inspired by 82-0. Sixteen all-time club XIs (1960s�
 - Draft room: computer picks play out one by one (300ms, skippable); ratings shown as whole numbers; pick by selecting a player, then a slot (on the pitch or the best-first fit chips).
 - Watching a match replay is optional; simulating is always available.
 - One URL per screen: `/` (landing), `/new` (team name + difficulty), `/draft`, `/season`, `/match/[id]`, `/playoffs`, `/end`. Pages (`app/`) load the CSV data on the server via `lib/data/gameData.ts` and pass it down; game screens (`components/screens/`) are client components that read the run from browser storage with `useSavedRun` (inside `<Suspense>`, using React's `use(browser())`).
-- The whole attempt is one `RunState` (`lib/run.ts`); its phase is derived, never stored. `useRequirePhase` redirects to the right screen.
+- The whole attempt is one `RunState` (`lib/run.ts`); its phase is derived, never stored. `useRequirePhase` redirects to the right screen. A finished draft or season stays on its screen (summary card) until the player moves on (`startSeason` / `startPlayoffs`).
+- Season hub: one-screen layout (next match, last result, table, results/scorers) with the 35-dot perfect-season tracker (`perfectTrack` in `lib/playoffs/outcome.ts`).
 - Next.js keeps up to 3 visited pages alive in the background (Activity, from `cacheComponents`) and restores their state. So: the saved run is one shared store (`useSavedRun`, built on `useSyncExternalStore`) rather than per-page state, and one-off UI like dialogs or confirmation messages resets itself when its page is hidden (`useLayoutEffect` cleanup).
 - Add `?dev` to any URL for the dev panel (finish draft / season / playoffs, delete run).
 - Component tests: `*.test.tsx` with `// @vitest-environment jsdom` and React Testing Library.

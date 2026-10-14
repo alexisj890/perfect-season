@@ -328,6 +328,15 @@ describe("simulateMatch: shots, corners and set pieces", () => {
     expect(avg((s) => s.goals)).toBeCloseTo(avg((s) => s.shots) * 0.1, 0);
   });
 
+  it("keeps a dominant side's shot count realistic", () => {
+    const weak = buildTeam(lineupByRank(data, [14, 15]), data);
+    const r2 = createRng(23);
+    const shots = Array.from({ length: 3000 }, () => matchStats(simulateMatch(strong, weak, r2)).home.shots);
+    const mean = shots.reduce((a, b) => a + b, 0) / shots.length;
+    expect(mean).toBeGreaterThan(16); // more shots than an average side…
+    expect(mean).toBeLessThan(28); // …but not the 40 a straight-line rule gave
+  });
+
   it("has every outcome and source happen", () => {
     for (const outcome of ["goal", "saved", "post", "wide"]) expect(shots.some((s) => s.outcome === outcome)).toBe(true);
     for (const source of ["open play", "corner", "free kick", "penalty"]) {

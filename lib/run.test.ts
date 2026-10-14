@@ -11,8 +11,10 @@ import {
   finishSeason,
   outcomeOf,
   PHASE_ROUTES,
+  playLeague,
   runPhase,
   runStatusLine,
+  runSummary,
   startPlayoffs,
   startRun,
   startSeason,
@@ -80,6 +82,18 @@ describe("phases", () => {
       }
     }
     throw new Error("No relegation found in 40 seeds");
+  });
+
+  it("stays on the season screen after the last matchday until the player moves on", () => {
+    let run = finishDraft(newRun(7), data);
+    run = playLeague(run, data, "matchday");
+    expect(nextMatchday(run.season!)).toBe(2);
+    run = playLeague(run, data, "rest");
+    expect(nextMatchday(run.season!)).toBeNull();
+    expect(run.playoffs).toBeNull();
+    expect(runPhase(run)).toBe("season");
+    expect(runSummary(run)).toBe("Season complete");
+    expect(["playoffs", "finished"]).toContain(runPhase(startPlayoffs(run)));
   });
 
   it("refuses to start a phase early", () => {

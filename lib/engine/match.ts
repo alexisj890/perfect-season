@@ -115,8 +115,8 @@ export function simulateMatch(
     { start: 46, end: 90, added: stoppageTime.secondHalf },
   ];
   const events = [
-    ...playPhase(home, "home", homeXg, regulation, rng),
-    ...playPhase(away, "away", awayXg, regulation, rng),
+    ...playPhase(home, "home", homeXg, 1, regulation, rng),
+    ...playPhase(away, "away", awayXg, 1, regulation, rng),
   ];
 
   // Goals brought from the first leg (zero unless this is a second leg).
@@ -136,8 +136,8 @@ export function simulateMatch(
     // Extra time is 30 minutes, so each side expects a third of its 90-minute goals.
     const share = ENGINE.extraTimeMinutes / 90;
     events.push(
-      ...playPhase(home, "home", homeXg * share, halves, rng),
-      ...playPhase(away, "away", awayXg * share, halves, rng),
+      ...playPhase(home, "home", homeXg, share, halves, rng),
+      ...playPhase(away, "away", awayXg, share, halves, rng),
     );
   }
   // A stable sort keeps each corner just ahead of the shot it led to.
@@ -265,15 +265,29 @@ function countGoals(events: MatchEvent[], side: Side): number {
 }
 
 // Every event for one side over one phase (90 minutes, or extra time).
-function playPhase(team: TeamProfile, side: Side, expected: number, halves: Half[], rng: Rng): MatchEvent[] {
+// `expected90` is the side's expected goals over 90 minutes; `share` is the part
+// of 90 minutes this phase lasts (1 for normal time, 1/3 for extra time).
+function playPhase(
+  team: TeamProfile,
+  side: Side,
+  expected90: number,
+  share: number,
+  halves: Half[],
+  rng: Rng,
+): MatchEvent[] {
   const corner = cornerTaker(team);
   const events: MatchEvent[] = [];
+  const expected = expected90 * share;
+  // How many shots and corners the side generates. It grows with the square root
+  // of expected goals: a dominant side takes more shots, but mostly better ones
+  // (≈22 shots at 4 expected goals rather than 40). An average side is unchanged.
+  const volume = Math.sqrt(expected90 * ENGINE.baseGoals) * share;
 
   for (const source of Object.keys(ENGINE.chanceSources) as ChanceSource[]) {
     const { goalShare, conversion } = ENGINE.chanceSources[source];
     // Splitting a Poisson count by fixed shares keeps total goals Poisson(expected).
     const goals = poisson(rng, expected * goalShare);
-    const misses = poisson(rng, (expected * goalShare * (1 - conversion)) / conversion);
+    const misses = poisson(rng, (volume * goalShare * (1 - conversion)) / conversion);
     for (let i = 0; i < goals + misses; i++) {
       const clock = randomClock(rng, halves);
       const outcome: ShotOutcome = i < goals ? "goal" : missOutcome(rng, source);
@@ -292,7 +306,7 @@ function playPhase(team: TeamProfile, side: Side, expected: number, halves: Half
   }
 
   // Corners that come to nothing.
-  const quietCorners = poisson(rng, expected * ENGINE.extraCornersPerExpectedGoal);
+  const quietCorners = poisson(rng, volume * ENGINE.extraCornersPerExpectedGoal);
   for (let i = 0; i < quietCorners; i++) {
     events.push({ type: "corner", ...randomClock(rng, halves), side, takerId: corner.player.id });
   }

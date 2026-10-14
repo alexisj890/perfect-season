@@ -11,7 +11,15 @@ import { createDraft, isComplete as isDraftComplete, lineupOf, userTeamIndex, ty
 import { buildTeam, type TeamProfile } from "@/lib/engine/team";
 import { runOutcome, type RunOutcome } from "@/lib/playoffs/outcome";
 import { createPlayoffs, isPlayoffsComplete, playRestOfPlayoffs, type PlayoffState } from "@/lib/playoffs/playoffs";
-import { createSeason, isSeasonComplete, leagueTable, playRestOfSeason, teamRecord, type SeasonState } from "@/lib/season/season";
+import {
+  createSeason,
+  isSeasonComplete,
+  leagueTable,
+  playMatchday,
+  playRestOfSeason,
+  teamRecord,
+  type SeasonState,
+} from "@/lib/season/season";
 
 export const RUN_VERSION = 1;
 
@@ -57,9 +65,11 @@ export function userTeam(run: RunState): number {
   return userTeamIndex(run.draft);
 }
 
+// Like the draft, a finished season stays in its phase until the player moves
+// on (startPlayoffs), so they can see the final table first.
 export function runPhase(run: RunState): RunPhase {
   if (!isDraftComplete(run.draft) || !run.season) return "draft";
-  if (!isSeasonComplete(run.season)) return "season";
+  if (!isSeasonComplete(run.season) || !run.playoffs) return "season";
   if (runOutcome(run.season, run.playoffs, userTeam(run)).kind === "relegated") return "finished";
   if (!run.playoffs || !isPlayoffsComplete(run.playoffs)) return "playoffs";
   return "finished";
@@ -100,6 +110,14 @@ export function startPlayoffs(run: RunState): RunState {
   return { ...run, playoffs: createPlayoffs(leagueTable(run.season), run.seed + 2, userTeam(run)) };
 }
 
+// Plays the next league matchday, or every remaining one.
+export function playLeague(run: RunState, data: GameData, howMuch: "matchday" | "rest"): RunState {
+  if (!run.season) throw new Error("The season hasn't started");
+  const teams = teamProfiles(run, data);
+  const season = howMuch === "matchday" ? playMatchday(run.season, teams) : playRestOfSeason(run.season, teams);
+  return { ...run, season };
+}
+
 // ---------------------------------------------------------------------------
 // Shortcuts for the dev panel and tests: finish a phase in one go.
 
@@ -129,6 +147,7 @@ export function runSummary(run: RunState): string {
   }
   if (phase === "season") {
     const s = run.season!;
+    if (isSeasonComplete(s)) return "Season complete";
     const played = s.matches.filter((m) => m.result !== null);
     const matchday = played.length === 0 ? 0 : Math.max(...played.map((m) => m.matchday));
     const { won, drawn, lost } = teamRecord(s, userTeam(run));

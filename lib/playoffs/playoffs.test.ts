@@ -5,7 +5,7 @@ import { createDraft, lineupOf, userTeamIndex } from "@/lib/draft/draft";
 import type { MatchResult } from "@/lib/engine/match";
 import { buildTeam } from "@/lib/engine/team";
 import { createSeason, leagueTable, playRestOfSeason, type SeasonState } from "@/lib/season/season";
-import { perfectSeason, runOutcome } from "./outcome";
+import { perfectSeason, perfectTrack, runOutcome } from "./outcome";
 import {
   champion,
   createPlayoffs,
@@ -262,5 +262,53 @@ describe("runOutcome and perfectSeason", () => {
     const outcome = runOutcome(season, done, user);
     expect(outcome.kind).not.toBe("inProgress");
     if (outcome.kind === "champion") expect(champion(done)).toBe(user);
+  });
+});
+
+describe("perfectTrack (the 35 progress dots)", () => {
+  const me = 0;
+  const count = (marks: string[], m: string) => marks.filter((x) => x === m).length;
+
+  it("is 35 upcoming dots before a ball is kicked", () => {
+    const marks = perfectTrack(createSeason(16, 1, me), null, me);
+    expect(marks).toHaveLength(35);
+    expect(count(marks, "upcoming")).toBe(35);
+  });
+
+  it("is 35 wins for a perfect season", () => {
+    const league = leagueWhere(me);
+    expect(count(perfectTrack(league, playoffsWhere(league, me, { userWins: true }), me), "win")).toBe(35);
+  });
+
+  it("marks a dropped league match on its matchday", () => {
+    const league = leagueWhere(me, [{ matchday: 4, score: [1, 1] }]);
+    const marks = perfectTrack(league, null, me);
+    expect(marks[3]).toBe("dropped");
+    expect(count(marks.slice(0, 30), "win")).toBe(29);
+    expect(marks.slice(30)).toEqual(Array(5).fill("upcoming"));
+  });
+
+  it("counts both legs of a tie won after losing a leg", () => {
+    const league = leagueWhere(me);
+    const marks = perfectTrack(league, playoffsWhere(league, me, { userWins: true, loseALeg: true }), me);
+    expect(marks.slice(30, 34)).toEqual(["win", "win", "win", "win"]);
+  });
+
+  it("drops a lost tie and voids the rounds never reached", () => {
+    const league = leagueWhere(me);
+    const marks = perfectTrack(league, playoffsWhere(league, me, { userWins: false }), me);
+    expect(marks.slice(30)).toEqual(["dropped", "dropped", "void", "void", "void"]);
+  });
+
+  it("voids the knockouts after relegation", () => {
+    const s = createSeason(16, 1, me);
+    const league: SeasonState = {
+      ...s,
+      matches: s.matches.map((m) => ({
+        ...m,
+        result: m.home === me ? result(0, 1) : m.away === me ? result(1, 0) : result(1, 1),
+      })),
+    };
+    expect(perfectTrack(league, null, me).slice(30)).toEqual(Array(5).fill("void"));
   });
 });

@@ -69,3 +69,42 @@ export function perfectSeason(season: SeasonState, playoffs: PlayoffState | null
 function isSeasonOver(season: SeasonState): boolean {
   return season.matches.every((m) => m.result !== null);
 }
+
+// The 35 matches of a perfect-season attempt, in order, for the progress dots:
+// 30 league matches by matchday, then QF legs, SF legs and the final.
+//   win      counted toward 35–0 (a tie the user went through counts both legs)
+//   dropped  a draw or defeat, or a tie/final the user lost
+//   upcoming not played yet
+//   void     never reached (the run ended before this match)
+export type TrackMark = "win" | "dropped" | "upcoming" | "void";
+
+export function perfectTrack(season: SeasonState, playoffs: PlayoffState | null, user: number): TrackMark[] {
+  const league: TrackMark[] = matchesOf(season, user)
+    .sort((a, b) => a.matchday - b.matchday)
+    .map((m) => {
+      if (!m.result) return "upcoming";
+      const mine = m.home === user ? m.result.homeGoals : m.result.awayGoals;
+      const theirs = m.home === user ? m.result.awayGoals : m.result.homeGoals;
+      return mine > theirs ? "win" : "dropped";
+    });
+
+  const outcome = runOutcome(season, playoffs, user);
+  const knockout = (ties: Tie[] | undefined, legs: number): TrackMark[] => {
+    const mine = ties?.find((t) => t.higher === user || t.lower === user);
+    if (mine) {
+      const winner = tieWinner(mine);
+      if (winner === null) return Array(legs).fill("upcoming");
+      return Array(legs).fill(winner === user ? "win" : "dropped");
+    }
+    // Not in this round: either it's still to come, or the run is over.
+    const over = outcome.kind === "relegated" || outcome.kind === "eliminated";
+    return Array(legs).fill(over ? "void" : "upcoming");
+  };
+
+  let final: TrackMark = "upcoming";
+  const f = playoffs?.final;
+  if (f?.result && (f.home === user || f.away === user)) final = champion(playoffs!) === user ? "win" : "dropped";
+  else if (outcome.kind === "relegated" || outcome.kind === "eliminated") final = "void";
+
+  return [...league, ...knockout(playoffs?.quarterFinals, 2), ...knockout(playoffs?.semiFinals, 2), final];
+}
