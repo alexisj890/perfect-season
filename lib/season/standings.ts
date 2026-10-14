@@ -22,10 +22,39 @@ export interface TableRow {
 
 export const POINTS = { win: 3, draw: 1, loss: 0 } as const;
 
-// Sorted by points, then goal difference, then goals scored. If teams are
-// still level after that, the lower team index (earlier draft position) goes
-// first, so the order is always well defined.
+// Sorted by points, then goal difference, then goals scored. Teams still level
+// after that are separated by head-to-head results: a mini-table of only the
+// matches between them (points, then goal difference, then goals). If even
+// that is level, the lower team index (earlier draft position) goes first, so
+// the order is always well defined.
 export function standings(teamCount: number, matches: PlayedMatch[]): TableRow[] {
+  const rows = tally(teamCount, matches);
+  rows.sort(byPointsThenGoals);
+
+  // Re-order each group of teams that are level on points, GD and goals.
+  const ordered: TableRow[] = [];
+  for (let i = 0; i < rows.length; ) {
+    let j = i + 1;
+    while (j < rows.length && byPointsThenGoals(rows[i], rows[j]) === 0) j++;
+    const group = rows.slice(i, j);
+    ordered.push(...(group.length > 1 ? headToHead(group, matches) : group));
+    i = j;
+  }
+  return ordered;
+}
+
+function byPointsThenGoals(a: TableRow, b: TableRow): number {
+  return b.points - a.points || b.goalDifference - a.goalDifference || b.goalsFor - a.goalsFor;
+}
+
+function headToHead(group: TableRow[], matches: PlayedMatch[]): TableRow[] {
+  const teams = new Set(group.map((r) => r.team));
+  const between = matches.filter((m) => teams.has(m.home) && teams.has(m.away));
+  const mini = new Map(tally(Math.max(...teams) + 1, between).map((r) => [r.team, r]));
+  return [...group].sort((a, b) => byPointsThenGoals(mini.get(a.team)!, mini.get(b.team)!) || a.team - b.team);
+}
+
+function tally(teamCount: number, matches: PlayedMatch[]): TableRow[] {
   const rows: TableRow[] = Array.from({ length: teamCount }, (_, team) => ({
     team,
     played: 0,
@@ -59,9 +88,5 @@ export function standings(teamCount: number, matches: PlayedMatch[]): TableRow[]
     record(rows[m.home], m.homeGoals, m.awayGoals);
     record(rows[m.away], m.awayGoals, m.homeGoals);
   }
-
-  return rows.sort(
-    (a, b) =>
-      b.points - a.points || b.goalDifference - a.goalDifference || b.goalsFor - a.goalsFor || a.team - b.team,
-  );
+  return rows;
 }

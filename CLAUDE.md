@@ -27,7 +27,7 @@ A soccer team-draft web game inspired by 82-0. Sixteen all-time club XIs (1960s�
 ## Game rules
 - **Draft:** 16-team snake draft (order reverses each round) from one shared pool; a drafted player is gone. No salary cap. The user gets a random draft position. Each pick must fill an open 4-3-3 slot (any player, any open slot; fit penalties apply). The pool is exactly 16 × 11, so every player is drafted.
 - **Computer drafters and difficulty:** each computer team gets a style — balanced (best available + chemistry), ignores chemistry, star-chaser (biggest name, even out of position), panic-fill (rushes scarce slots) — plus randomness. The player picks Easy / Normal / Hard, which sets the style mix and how sloppy the computer is (`lib/draft/config.ts`). Targets: a strong draft goes 35–0 about 9% / 2.5% / 0.3% of the time (Easy / Normal / Hard).
-- **League:** home and away, 30 matchdays (double round-robin, circle method; matchdays 16–30 mirror 1–15 with venues swapped; no team plays three home or away games in a row). 3 points for a win, 1 for a draw. Tiebreaks: goal difference, then goals scored, then team index (draft position) as a last resort.
+- **League:** home and away, 30 matchdays (double round-robin, circle method; matchdays 16–30 mirror 1–15 with venues swapped; no team plays three home or away games in a row). 3 points for a win, 1 for a draw. Tiebreaks: goal difference, then goals scored, then head-to-head (a mini-table of the matches between the teams still level: points, goal difference, goals), then draft position as a last resort.
 - **Playoffs:** top 8 (1v8, 2v7, 3v6, 4v5). Quarter-finals and semi-finals are two legs; the higher seed hosts the second leg. Aggregate ties go to extra time, then penalties (no away goals). The final is one match at a neutral venue, with extra time and penalties.
 - **Perfect season:** win all 35 matches (30 league + 4 knockout legs + final). A match counts as a win if the user scores more in it (extra time included) or wins its penalty shootout. A two-legged tie counts as two wins whenever the user goes through, even after losing or drawing one leg.
 - **Position fit:** players may be drafted into any slot. Tiers in `position_fit.csv`: Natural, Secondary, Similar (`position_similarity.csv`), Out of position, Goalkeeper swap. Rating = `weighted_score` × the fit multiplier for the slot they're actually playing (not the CSV's `effective_rating`, which is for their original slot).
@@ -52,6 +52,8 @@ A soccer team-draft web game inspired by 82-0. Sixteen all-time club XIs (1960s�
 ## Ideas parked for later
 - Form, fatigue, injuries and red cards (left out for now: more complexity, and they make a perfect season more about luck).
 - Chemistry-aware drafting ("balanced") did slightly worse than plain best-available in simulations — the draft may overvalue chemistry. Worth revisiting.
+
+- Star-chaser computer teams are very weak (blowouts against them are common). Kept on purpose for now: blowouts are satisfying.
 
 ## How to work with me
 - I'm new to Next.js. Explain what you're changing and why in plain language.

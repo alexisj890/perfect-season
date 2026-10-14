@@ -81,7 +81,7 @@ describe("standings", () => {
     expect(row(2)).toMatchObject({ played: 1, drawn: 1, points: 1, goalDifference: 0 });
   });
 
-  it("breaks ties on goal difference, then goals scored, then team index", () => {
+  it("breaks ties on goal difference, then goals scored", () => {
     const table = standings(4, [
       // Everyone ends on 3 points.
       { home: 0, away: 1, homeGoals: 1, awayGoals: 0 }, // 0: +1, 1 goal
@@ -93,8 +93,55 @@ describe("standings", () => {
     expect(table.map((r) => r.team)).toEqual([1, 0, 3, 2]);
   });
 
-  it("falls back to team index when everything is level", () => {
+  it("then uses head-to-head results between the teams still level", () => {
+    // Teams 0 and 1 finish level on points (3), goal difference (0) and goals (2).
+    // Team 1 won their meeting, so team 1 goes above team 0 despite the higher index.
+    const table = standings(4, [
+      { home: 1, away: 0, homeGoals: 1, awayGoals: 0 }, // 1 beats 0
+      { home: 0, away: 2, homeGoals: 2, awayGoals: 1 }, // 0 beats 2 → team 0: 3 pts, 2 for, 2 against
+      { home: 3, away: 1, homeGoals: 2, awayGoals: 1 }, // 3 beats 1 → team 1: 3 pts, 2 for, 2 against
+    ]);
+    const row = (team: number) => table.find((r) => r.team === team)!;
+    expect([row(0), row(1)].map((r) => [r.points, r.goalDifference, r.goalsFor])).toEqual([
+      [3, 0, 2],
+      [3, 0, 2],
+    ]);
+    expect(table.map((r) => r.team).indexOf(1)).toBeLessThan(table.map((r) => r.team).indexOf(0));
+  });
+
+  it("uses a head-to-head mini-table when three teams are level", () => {
+    // Teams 0, 1 and 2 all finish on 7 points, +2 goal difference, 3 goals.
+    //   Between them: 2 beats 0 and 1 (1–0 each); 0 and 1 draw 0–0.
+    //   Against the rest: 2 draws 1–1 with 3; 0 beats 3 (2–0) and 4 (1–0);
+    //   1 beats 4 (2–0) and 5 (1–0).
+    // Head-to-head mini-table: 2 has 6 points, 0 and 1 have 1 each and are level
+    // on everything, so 2 goes first and the draft-position fallback puts 0 before 1.
+    const table = standings(6, [
+      { home: 2, away: 0, homeGoals: 1, awayGoals: 0 },
+      { home: 2, away: 1, homeGoals: 1, awayGoals: 0 },
+      { home: 0, away: 1, homeGoals: 0, awayGoals: 0 },
+      { home: 2, away: 3, homeGoals: 1, awayGoals: 1 },
+      { home: 0, away: 3, homeGoals: 2, awayGoals: 0 },
+      { home: 0, away: 4, homeGoals: 1, awayGoals: 0 },
+      { home: 1, away: 4, homeGoals: 2, awayGoals: 0 },
+      { home: 1, away: 5, homeGoals: 1, awayGoals: 0 },
+    ]);
+    const top = table.slice(0, 3);
+    expect(top.map((r) => [r.points, r.goalDifference, r.goalsFor])).toEqual([
+      [7, 2, 3],
+      [7, 2, 3],
+      [7, 2, 3],
+    ]);
+    expect(top.map((r) => r.team)).toEqual([2, 0, 1]);
+  });
+
+  it("falls back to team index when even head-to-head is level", () => {
     expect(standings(3, []).map((r) => r.team)).toEqual([0, 1, 2]);
+    const drawnTwice = [
+      { home: 0, away: 1, homeGoals: 1, awayGoals: 1 },
+      { home: 1, away: 0, homeGoals: 1, awayGoals: 1 },
+    ];
+    expect(standings(2, drawnTwice).map((r) => r.team)).toEqual([0, 1]);
   });
 });
 
