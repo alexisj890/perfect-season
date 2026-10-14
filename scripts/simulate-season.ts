@@ -29,7 +29,7 @@ const data = loadGameData();
 const nameOf = (id: string) => data.players.find((p) => p.id === id)?.name ?? id;
 
 // The user's picks are made automatically here, drafting sharply.
-const draft = autoDraft(createDraft(data, seed, difficulty), data, {
+const draft = autoDraft(createDraft(data, seed, { difficulty }), data, {
   style: "ignoresChemistry",
   candidates: 2,
   temperature: 0.5,

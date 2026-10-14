@@ -47,7 +47,17 @@ A soccer team-draft web game inspired by 82-0. Sixteen all-time club XIs (1960sâ
 - Game state (draft, season, playoffs) must be serializable so a run can be saved and resumed.
 - Saves store match results, never just a seed to replay: any engine change alters what a seed produces, so replaying would rewrite past results.
 - To keep saves small, the user's matches keep every event (for the replay); other matches keep only their goals.
-- Leave room for accounts later (nullable `user_id`), but don't build them yet.
+- Accounts: Google sign-in via Supabase Auth, built together with database saves at the end of Milestone 6. Until then the home page shows the sign-in section with a disabled "coming soon" button. Guest play is always allowed (guests save in the browser); keep `user_id` nullable.
+
+## UI decisions (Milestone 6)
+- Desktop first; phone layouts later.
+- Day / night theme toggle.
+- Computer teams are named after their drafting style.
+- Watching a match replay is optional; simulating is always available.
+- One URL per screen: `/`, `/draft`, `/season`, `/match/[id]`, `/playoffs`, `/end`. Pages (`app/`) load the CSV data on the server via `lib/data/gameData.ts` and pass it down; game screens (`components/screens/`) are client components that read the run from browser storage with `useSavedRun` (inside `<Suspense>`, using React's `use(browser())`).
+- The whole attempt is one `RunState` (`lib/run.ts`); its phase is derived, never stored. `useRequirePhase` redirects to the right screen.
+- Add `?dev` to any URL for the dev panel (finish draft / season / playoffs, delete run).
+- Component tests: `*.test.tsx` with `// @vitest-environment jsdom` and React Testing Library.
 
 ## Ideas parked for later
 - Form, fatigue, injuries and red cards (left out for now: more complexity, and they make a perfect season more about luck).

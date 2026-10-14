@@ -6,6 +6,7 @@ import type { GameData, Player, SlotId } from "@/lib/data/types";
 import type { Lineup } from "@/lib/engine/team";
 import { createRng, randomInt, weightedPick } from "@/lib/rng";
 import { DRAFT, type Difficulty } from "./config";
+import { pickTeamNames } from "./names";
 import type { DraftStyle } from "./styles";
 
 export interface DraftTeam {
@@ -39,12 +40,14 @@ export interface PickTurn {
 // ---------------------------------------------------------------------------
 // Setting up
 
-export function createDraft(
-  data: GameData,
-  seed: number,
-  difficulty: Difficulty = "normal",
-  teamCount: number = DRAFT.teamCount,
-): DraftState {
+export interface DraftOptions {
+  difficulty?: Difficulty; // default "normal"
+  teamCount?: number; // default 16
+  userName?: string; // default "Your XI"
+}
+
+export function createDraft(data: GameData, seed: number, options: DraftOptions = {}): DraftState {
+  const { difficulty = "normal", teamCount = DRAFT.teamCount, userName = "Your XI" } = options;
   const rounds = data.formation.slots.length;
   if (data.players.length < teamCount * rounds) {
     throw new Error(`Need ${teamCount * rounds} players for ${teamCount} teams, have ${data.players.length}`);
@@ -52,10 +55,12 @@ export function createDraft(
   const rng = createRng(seed);
   const userIndex = randomInt(rng, 0, teamCount - 1); // the user's random draft position
   const styleWeights = DRAFT.difficulties[difficulty].styles;
-  const styles = Object.keys(styleWeights) as DraftStyle[];
+  const allStyles = Object.keys(styleWeights) as DraftStyle[];
+  const styles = Array.from({ length: teamCount }, () => weightedPick(rng, allStyles, (s) => styleWeights[s]));
+  const names = pickTeamNames(styles, rng);
   const teams = Array.from({ length: teamCount }, (_, i): DraftTeam => {
-    if (i === userIndex) return { name: "Your XI", isUser: true, style: null };
-    return { name: `Team ${i + 1}`, isUser: false, style: weightedPick(rng, styles, (s) => styleWeights[s]) };
+    if (i === userIndex) return { name: userName, isUser: true, style: null };
+    return { name: names[i], isUser: false, style: styles[i] };
   });
   return { difficulty, teams, rounds, picks: [], rngState: rng.state() };
 }

@@ -115,7 +115,7 @@ function runScenario(difficulty: Difficulty, profile: Drafter): Summary {
   const totals = { strength: 0, rank: 0, win: 0, draw: 0, mismatchDraw: 0, perfectSim: 0, perfectProduct: 0 };
   for (let d = 0; d < DRAFTS; d++) {
     const seed = 1000 + d;
-    const state = autoDraft(createDraft(data, seed, difficulty), data, profile);
+    const state = autoDraft(createDraft(data, seed, { difficulty }), data, profile);
     const userIndex = userTeamIndex(state);
     const teams = state.teams.map((_, i) => buildTeam(lineupOf(state, i), data));
     const contests = userContests(teams, userIndex);

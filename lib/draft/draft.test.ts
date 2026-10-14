@@ -43,7 +43,7 @@ describe("createDraft", () => {
   it("gives every computer team a drafting style allowed by the difficulty", () => {
     for (const difficulty of ["easy", "normal", "hard"] as const) {
       for (let seed = 0; seed < 20; seed++) {
-        const state = createDraft(data, seed, difficulty);
+        const state = createDraft(data, seed, { difficulty });
         expect(state.difficulty).toBe(difficulty);
         for (const team of state.teams) {
           if (team.isUser) expect(team.style).toBeNull();
@@ -248,7 +248,7 @@ describe("difficulty", () => {
     const strength = (difficulty: "easy" | "hard") => {
       let total = 0;
       for (let seed = 0; seed < 6; seed++) {
-        const state = autoDraft(createDraft(data, seed, difficulty), data);
+        const state = autoDraft(createDraft(data, seed, { difficulty }), data);
         state.teams.forEach((t, i) => {
           if (t.isUser) return;
           const team = buildTeam(lineupOf(state, i), data);

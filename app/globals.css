@@ -1,26 +1,55 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* `dark:` classes apply in the night theme (set on <html data-theme="night">). */
+@custom-variant dark (&:where([data-theme="night"], [data-theme="night"] *));
+
+/* Day: bright matchday afternoon. */
+[data-theme="day"] {
+  --background: #f3f6f1;
+  --surface: #ffffff;
+  --surface-2: #e9f0e7;
+  --border: #d3dfd3;
+  --foreground: #0f1f17;
+  --muted: #5a7165;
+  --accent: #b88a00;
+  --accent-foreground: #ffffff;
+  --pitch: #1f8a4c;
+  --pitch-line: #e8f5ec;
+  --danger: #c73b3b;
+}
+
+/* Night: stadium under floodlights (the default). */
+[data-theme="night"] {
+  --background: #06110c;
+  --surface: #0e1f17;
+  --surface-2: #142b20;
+  --border: #23402f;
+  --foreground: #e6f0e9;
+  --muted: #8ca697;
+  --accent: #f5c518;
+  --accent-foreground: #1a1400;
+  --pitch: #17663a;
+  --pitch-line: #a9d8b9;
+  --danger: #ff6b6b;
 }
 
 @theme inline {
   --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-border: var(--border);
   --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-pitch: var(--pitch);
+  --color-pitch-line: var(--pitch-line);
+  --color-danger: var(--danger);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
 }

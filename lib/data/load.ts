@@ -16,10 +16,10 @@ import {
 } from "./parse";
 import type { GameData } from "./types";
 
-const DATA_DIR = path.join(process.cwd(), "data");
-
-export function loadGameData(dataDir: string = DATA_DIR): GameData {
-  const read = (file: string) => readFileSync(path.join(dataDir, file), "utf8");
+export function loadGameData(): GameData {
+  // Always the project's data/ folder, written out in full so Next.js can tell
+  // exactly which files the server needs when it bundles the app.
+  const read = (file: string) => readFileSync(path.join(process.cwd(), "data", file), "utf8");
   const players = parsePlayers(read("players.csv"));
   return {
     players,
