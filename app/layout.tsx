@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Barlow, Barlow_Condensed } from "next/font/google";
 import Link from "next/link";
 import { HeaderAccount } from "@/components/HeaderAccount";
+import { SettingsMenu } from "@/components/SettingsMenu";
 import { ThemeToggle, THEME_SCRIPT } from "@/components/ThemeToggle";
 import "./globals.css";
 
@@ -43,6 +44,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
             </Link>
             <div className="flex items-center gap-4">
               <HeaderAccount />
+              <SettingsMenu />
               <ThemeToggle />
             </div>
           </div>

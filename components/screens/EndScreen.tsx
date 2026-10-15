@@ -65,7 +65,7 @@ export function EndScreen({ data }: { data: GameData }) {
           </div>
         </div>
         <div className="flex flex-col items-center gap-2">
-          <Link href="/new" className="rounded-full bg-accent px-6 py-3 font-semibold text-accent-foreground hover:brightness-110">
+          <Link href="/?new" className="rounded-full bg-accent px-6 py-3 font-semibold text-accent-foreground hover:brightness-110">
             {headline.honour === "perfect" ? "Start a new run" : "Try again"}
           </Link>
           <Link href="/" className="text-sm text-muted underline underline-offset-4 hover:text-foreground">

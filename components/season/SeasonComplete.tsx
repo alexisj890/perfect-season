@@ -27,7 +27,7 @@ export function SeasonComplete({ position, record, qualified, onContinue }: Prop
         onClick={onContinue}
         className="rounded-full bg-accent px-4 py-2.5 font-semibold text-accent-foreground hover:brightness-110"
       >
-        {qualified ? "Continue to the playoffs" : "See how it ended"}
+        {qualified ? "Continue to the playoffs" : "See your season review"}
       </button>
     </section>
   );

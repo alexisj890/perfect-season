@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { useLayoutEffect, useMemo, useRef, useState } from "react";
 import { MatchRatingsModal } from "@/components/ratings/MatchRatingsModal";
 import { DevPanel } from "@/components/DevPanel";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { HonoursStatus } from "@/components/HonoursStatus";
 import { PerfectTracker } from "@/components/PerfectTracker";
 import { LastResultCard } from "@/components/season/LastResultCard";
@@ -38,8 +39,16 @@ export function SeasonScreen({ data }: { data: GameData }) {
   const profiles = useMemo(() => (draft ? draft.teams.map((_, i) => buildTeam(lineupOf(draft, i), data)) : []), [draft, data]);
   const [ratingsOpen, setRatingsOpen] = useState(false);
   const ratingsButton = useRef<HTMLButtonElement>(null);
-  // Next.js keeps this page alive in the background; close the pop-up when it's hidden.
-  useLayoutEffect(() => () => setRatingsOpen(false), []);
+  const [confirmingSim, setConfirmingSim] = useState(false);
+  const simButton = useRef<HTMLButtonElement>(null);
+  // Next.js keeps this page alive in the background; close the pop-ups when it's hidden.
+  useLayoutEffect(
+    () => () => {
+      setRatingsOpen(false);
+      setConfirmingSim(false);
+    },
+    [],
+  );
 
   if (!ready || !run || !run.season) return null;
   const season = run.season;
@@ -87,9 +96,10 @@ export function SeasonScreen({ data }: { data: GameData }) {
           <HonoursStatus season={season} playoffs={run.playoffs} user={me} matchIndexOfFirstLoss={marks.indexOf("loss")} />
         </div>
         <button
+          ref={simButton}
           type="button"
           disabled={!next}
-          onClick={() => update(playLeague(run, data, "rest"))}
+          onClick={() => setConfirmingSim(true)}
           className="rounded-full border border-border px-3 py-1 text-xs font-semibold hover:border-accent disabled:opacity-40"
         >
           Sim to end of season
@@ -174,6 +184,21 @@ export function SeasonScreen({ data }: { data: GameData }) {
           playersById={playersById}
         />
       )}
+      <ConfirmDialog
+        open={confirmingSim && !!next}
+        title="Sim to the end of the season?"
+        confirmLabel="Sim the season"
+        onConfirm={() => update(playLeague(run, data, "rest"))}
+        onCancel={() => setConfirmingSim(false)}
+        returnFocusTo={simButton}
+      >
+        {next && (
+          <>
+            Matchdays {next.matchday}–{totalMatchdays} will be played in one go. You won&apos;t be able to watch them, but you
+            can still see every result and replay your matches.
+          </>
+        )}
+      </ConfirmDialog>
       <DevPanel data={data} run={run} update={update} clear={clear} />
     </div>
   );

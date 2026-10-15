@@ -1,5 +1,9 @@
+"use client";
+
 // What happens next in the playoffs, and the buttons to play it.
 
+import { useLayoutEffect, useRef, useState } from "react";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import type { PlayoffMatch, PlayoffStep } from "@/lib/playoffs/playoffs";
 
 const STEP_TITLE: Record<PlayoffStep, string> = {
@@ -27,6 +31,10 @@ interface Props {
 
 export function UpNext(props: Props) {
   const { step, userMatch, names, user, knockedOutBy, championName, userIsChampion, honour = null, onPlay, onWatch, onSimRest, onFinish } = props;
+  const [confirming, setConfirming] = useState(false);
+  const simButton = useRef<HTMLButtonElement>(null);
+  // Next.js keeps this page alive in the background; close the pop-up when it's hidden.
+  useLayoutEffect(() => () => setConfirming(false), []);
   const primary = "flex-1 rounded-full bg-accent px-4 py-2 font-semibold text-accent-foreground hover:brightness-110";
   const secondary = "rounded-full border border-border px-4 py-2 text-sm font-semibold hover:border-accent";
 
@@ -45,7 +53,7 @@ export function UpNext(props: Props) {
                 : "You're the champions!"}
         </p>
         <button type="button" onClick={onFinish} className={primary}>
-          See how it ended
+          See your season review
         </button>
       </section>
     );
@@ -79,15 +87,32 @@ export function UpNext(props: Props) {
         )}
       </div>
       <div className="flex gap-2">
-        <button type="button" onClick={onSimRest} className={`${secondary} flex-1 text-xs`}>
+        <button
+          ref={simButton}
+          type="button"
+          // Only ask while the user still has knockout matches to skip.
+          onClick={() => (knockedOutBy ? onSimRest() : setConfirming(true))}
+          className={`${secondary} flex-1 text-xs`}
+        >
           Sim to the end
         </button>
         {knockedOutBy && (
           <button type="button" onClick={onFinish} className={`${secondary} flex-1 text-xs`}>
-            See how it ended
+            Skip to season review
           </button>
         )}
       </div>
+      <ConfirmDialog
+        open={confirming}
+        title="Sim the rest of the playoffs?"
+        confirmLabel="Sim to the end"
+        onConfirm={onSimRest}
+        onCancel={() => setConfirming(false)}
+        returnFocusTo={simButton}
+      >
+        Your remaining knockout matches will be played in one go. You won&apos;t be able to watch them, but you can still see
+        every result and replay your matches afterwards.
+      </ConfirmDialog>
     </section>
   );
 }

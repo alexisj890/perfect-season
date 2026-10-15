@@ -13,12 +13,13 @@ interface Props {
   headerExtra?: ReactNode; // shown beside the title (e.g. stats)
   returnFocusTo?: RefObject<HTMLElement | null>;
   wide?: boolean; // for content like a full pitch
+  narrow?: boolean; // for small forms
   children: ReactNode;
 }
 
 const FOCUSABLE = 'button:not([disabled]), [href], input:not([disabled]), select, textarea, [tabindex]:not([tabindex="-1"])';
 
-export function Modal({ open, onClose, title, headerExtra, returnFocusTo, wide = false, children }: Props) {
+export function Modal({ open, onClose, title, headerExtra, returnFocusTo, wide = false, narrow = false, children }: Props) {
   const titleId = useId();
   const dialogRef = useRef<HTMLDivElement>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
@@ -71,7 +72,7 @@ export function Modal({ open, onClose, title, headerExtra, returnFocusTo, wide =
         aria-modal="true"
         aria-labelledby={titleId}
         className={`flex max-h-[calc(100dvh-4rem)] w-full flex-col gap-4 overflow-y-auto rounded-2xl border border-border bg-surface p-6 shadow-2xl ${
-          wide ? "max-w-5xl" : "max-w-3xl"
+          wide ? "max-w-5xl" : narrow ? "max-w-xl" : "max-w-3xl"
         }`}
       >
         <div className="flex items-center justify-between gap-4">

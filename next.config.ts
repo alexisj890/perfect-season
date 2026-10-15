@@ -6,6 +6,10 @@ const nextConfig: NextConfig = {
     agentFeedback: true,
   },
   cacheComponents: true,
+  // Starting a run is a pop-up on the landing page now, not its own page.
+  async redirects() {
+    return [{ source: "/new", destination: "/?new", permanent: false }];
+  },
   partialPrefetching: true,
   turbopack: {
     rules: {

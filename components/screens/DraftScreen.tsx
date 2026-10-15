@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { DevPanel } from "@/components/DevPanel";
 import { DraftBoard } from "@/components/draft/DraftBoard";
+import { DraftClock } from "@/components/draft/DraftClock";
 import { DraftPitch } from "@/components/draft/DraftPitch";
 import { DraftSummary } from "@/components/draft/DraftSummary";
 import { DraftTopBar } from "@/components/draft/DraftTopBar";
@@ -16,6 +17,7 @@ import { PlayerPanel, PlayerPanelEmpty } from "@/components/draft/PlayerPanel";
 import { PlayerPool } from "@/components/draft/PlayerPool";
 import { useRequirePhase } from "@/components/useRequirePhase";
 import { useSavedRun } from "@/components/useSavedRun";
+import { useSettings } from "@/components/useSettings";
 import type { GameData, SlotId } from "@/lib/data/types";
 import { BEST_AVAILABLE, pickOnce, runCpuPicks } from "@/lib/draft/cpu";
 import { availablePlayers, currentTurn, makePick, openSlots, totalPicks } from "@/lib/draft/draft";
@@ -37,6 +39,8 @@ export function DraftScreen({ data }: { data: GameData }) {
   const ready = useRequirePhase(run, "draft");
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [tab, setTab] = useState<"draft" | "board">("draft");
+  const [notice, setNotice] = useState<string | null>(null);
+  const { draftTimer } = useSettings();
 
   const playersById = useMemo(() => new Map(data.players.map((p) => [p.id, p])), [data]);
   const slotsById = useMemo(() => new Map(data.formation.slots.map((s) => [s.id, s])), [data]);
@@ -74,6 +78,16 @@ export function DraftScreen({ data }: { data: GameData }) {
     if (!usersTurn || !selectedAvailable) return;
     update({ ...run!, draft: makePick(draft!, data, selectedAvailable.id, slot) });
     setSelectedId(null);
+    setNotice(null);
+  }
+
+  // The Auto-pick button, and the timer running out: the best-rated player for an open slot.
+  function autoPick(timedOut: boolean) {
+    const next = pickOnce(draft!, data, BEST_AVAILABLE);
+    update({ ...run!, draft: next });
+    setSelectedId(null);
+    const made = next.picks.at(-1)!;
+    setNotice(timedOut ? `Time ran out, so we picked ${playersById.get(made.playerId)!.name} for ${made.slot}.` : null);
   }
 
   const recent = draft.picks
@@ -114,12 +128,12 @@ export function DraftScreen({ data }: { data: GameData }) {
         usersTurn={usersTurn}
         recent={recent}
         onSkip={() => update({ ...run, draft: runCpuPicks(draft, data) })}
-        onAutoPick={() => {
-          update({ ...run, draft: pickOnce(draft, data, BEST_AVAILABLE) });
-          setSelectedId(null);
-        }}
+        onAutoPick={() => autoPick(false)}
         view={tab}
         onView={setTab}
+        // Keyed by the pick, so each of the user's picks gets a fresh 60 seconds.
+        clock={draftTimer && usersTurn ? <DraftClock key={turnNumber} onExpire={() => autoPick(true)} /> : null}
+        notice={notice}
       />
 
       {tab === "board" ? (

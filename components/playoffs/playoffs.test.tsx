@@ -67,8 +67,27 @@ describe("UpNext", () => {
     render(<UpNext {...props} step="SF leg 1" userMatch={null} />);
     expect(screen.getByText("You were knocked out by Moneyball FC.")).toBeTruthy();
     expect(screen.queryByRole("button", { name: "Watch" })).toBeNull();
-    fireEvent.click(screen.getByRole("button", { name: "See how it ended" }));
+    fireEvent.click(screen.getByRole("button", { name: "Skip to season review" }));
     expect(props.onFinish).toHaveBeenCalled();
+    // Nothing of the user's left to skip, so no confirmation.
+    fireEvent.click(screen.getByRole("button", { name: "Sim to the end" }));
+    expect(props.onSimRest).toHaveBeenCalled();
+    expect(screen.queryByRole("dialog")).toBeNull();
+  });
+
+  it("asks before simming past the user's own matches", () => {
+    const props = { ...base, onSimRest: vi.fn() };
+    render(<UpNext {...props} step="QF leg 1" userMatch={nextUserMatch(run.playoffs!, me)} />);
+    fireEvent.click(screen.getByRole("button", { name: "Sim to the end" }));
+    const dialog = screen.getByRole("dialog", { name: "Sim the rest of the playoffs?" });
+    fireEvent.click(within(dialog).getByRole("button", { name: "Cancel" }));
+    expect(props.onSimRest).not.toHaveBeenCalled();
+    expect(screen.queryByRole("dialog")).toBeNull();
+
+    fireEvent.click(screen.getByRole("button", { name: "Sim to the end" }));
+    fireEvent.click(within(screen.getByRole("dialog")).getByRole("button", { name: "Sim to the end" }));
+    expect(props.onSimRest).toHaveBeenCalledOnce();
+    expect(screen.queryByRole("dialog")).toBeNull();
   });
 
   it("names the champion once the final is played", () => {
