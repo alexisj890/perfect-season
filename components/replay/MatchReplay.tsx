@@ -307,7 +307,9 @@ function FullTime(props: {
   const mine = userSide === "home" ? result.homeGoals : result.awayGoals;
   const theirs = userSide === "home" ? result.awayGoals : result.homeGoals;
   const won = result.winner === userSide;
-  const verdict = mine > theirs || (mine === theirs && won) ? "Win" : mine === theirs ? "Draw" : "Defeat";
+  // The verdict is about this match; a second leg's tie result is shown separately.
+  const verdict =
+    mine > theirs ? "Win" : mine < theirs ? "Defeat" : result.shootout ? (won ? "Won on penalties" : "Lost on penalties") : "Draw";
   return (
     <div className="absolute inset-0 flex items-center justify-center bg-black/55">
       <div className="flex flex-col items-center gap-3 rounded-2xl border border-border bg-surface px-8 py-6 text-center shadow-2xl">
@@ -318,6 +320,12 @@ function FullTime(props: {
         <div className="text-sm text-muted">
           {homeName} v {awayName} · <span className="font-semibold text-foreground">{verdict}</span>
         </div>
+        {result.aggregate && (
+          <div className="text-sm font-semibold tabular-nums">
+            {won ? "Through" : "Out"} on aggregate {result.aggregate.home}–{result.aggregate.away}
+            {result.shootout ? " (after penalties)" : ""}
+          </div>
+        )}
         {result.shootout && (
           <div className="text-sm">
             <div className="font-semibold tabular-nums">
@@ -342,7 +350,7 @@ function FullTime(props: {
             Player ratings
           </button>
           <Link href={backHref} className="rounded-full bg-accent px-4 py-2 text-sm font-semibold text-accent-foreground hover:brightness-110">
-            Back to season
+            {backHref === "/playoffs" ? "Back to the playoffs" : "Back to season"}
           </Link>
         </div>
       </div>

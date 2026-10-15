@@ -174,3 +174,70 @@ function pairWinners(state: PlayoffState, ties: Tie[], round: Round): Tie[] {
 function bySeedOrder(state: PlayoffState, a: number, b: number): [number, number] {
   return seedOf(state, a)! < seedOf(state, b)! ? [a, b] : [b, a];
 }
+
+// ---------------------------------------------------------------------------
+// Every knockout match as a flat list, for the bracket, the "up next" panel
+// and replays. Keys look like "qf-1-1" (quarter-final tie 1, first leg),
+// "sf-2-2" or "final".
+
+export interface PlayoffMatch {
+  key: string;
+  step: PlayoffStep; // which step of the playoffs it's played in
+  label: string; // "Quarter-final, 1st leg"
+  home: number | null; // team index; null while not yet known
+  away: number | null;
+  result: MatchResult | null;
+  neutral: boolean;
+  firstLeg: MatchResult | null; // for a second leg: how the first leg went (home/away as played then)
+}
+
+const ROUND_NAME: Record<Round, string> = { QF: "Quarter-final", SF: "Semi-final" };
+
+export function playoffMatches(state: PlayoffState): PlayoffMatch[] {
+  const matches: PlayoffMatch[] = [];
+  const legs = (ties: Tie[], round: Round) =>
+    ties.forEach((tie, i) => {
+      const prefix = `${round.toLowerCase()}-${i + 1}`;
+      matches.push({
+        key: `${prefix}-1`,
+        step: `${round} leg 1` as PlayoffStep,
+        label: `${ROUND_NAME[round]}, 1st leg`,
+        home: tie.lower,
+        away: tie.higher,
+        result: tie.leg1,
+        neutral: false,
+        firstLeg: null,
+      });
+      matches.push({
+        key: `${prefix}-2`,
+        step: `${round} leg 2` as PlayoffStep,
+        label: `${ROUND_NAME[round]}, 2nd leg`,
+        home: tie.higher,
+        away: tie.lower,
+        result: tie.leg2,
+        neutral: false,
+        firstLeg: tie.leg1,
+      });
+    });
+  legs(state.quarterFinals, "QF");
+  legs(state.semiFinals, "SF");
+  const f = state.final;
+  matches.push({
+    key: "final",
+    step: "Final",
+    label: "Final",
+    home: f?.home ?? null,
+    away: f?.away ?? null,
+    result: f?.result ?? null,
+    neutral: true,
+    firstLeg: null,
+  });
+  return matches;
+}
+
+// The user's match in the next step, if they're still in it.
+export function nextUserMatch(state: PlayoffState, team: number): PlayoffMatch | null {
+  const step = nextStep(state);
+  if (!step) return null;
+  return playoffMatches(state).find((m) => m.step === step && (m.home === team || m.away === team)) ?? null;
+}

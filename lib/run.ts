@@ -5,12 +5,20 @@
 // than stored, so it can never disagree with the results.
 
 import type { GameData } from "@/lib/data/types";
+import type { MatchResult } from "@/lib/engine/match";
 import type { Difficulty } from "@/lib/draft/config";
 import { autoDraft, runCpuPicks } from "@/lib/draft/cpu";
 import { createDraft, isComplete as isDraftComplete, lineupOf, userTeamIndex, type DraftState } from "@/lib/draft/draft";
 import { buildTeam, type TeamProfile } from "@/lib/engine/team";
 import { runOutcome, type RunOutcome } from "@/lib/playoffs/outcome";
-import { createPlayoffs, isPlayoffsComplete, playRestOfPlayoffs, type PlayoffState } from "@/lib/playoffs/playoffs";
+import {
+  createPlayoffs,
+  isPlayoffsComplete,
+  playNextStep,
+  playoffMatches,
+  playRestOfPlayoffs,
+  type PlayoffState,
+} from "@/lib/playoffs/playoffs";
 import {
   createSeason,
   isSeasonComplete,
@@ -34,6 +42,9 @@ export interface RunState {
   draft: DraftState;
   season: SeasonState | null; // created when the draft finishes
   playoffs: PlayoffState | null; // created when the season finishes
+  // Set when the player moves on from the finished playoffs to the end screen
+  // (optional, so saves from before it existed still load).
+  ended?: boolean;
 }
 
 export type RunPhase = "draft" | "season" | "playoffs" | "finished";
@@ -72,7 +83,9 @@ export function runPhase(run: RunState): RunPhase {
   if (!isDraftComplete(run.draft) || !run.season) return "draft";
   if (!isSeasonComplete(run.season) || !run.playoffs) return "season";
   if (runOutcome(run.season, run.playoffs, userTeam(run)).kind === "relegated") return "finished";
-  if (!run.playoffs || !isPlayoffsComplete(run.playoffs)) return "playoffs";
+  // Like the season, finished playoffs stay on their screen (with the champion)
+  // until the player moves on (endRun).
+  if (!run.playoffs || !isPlayoffsComplete(run.playoffs) || !run.ended) return "playoffs";
   return "finished";
 }
 
@@ -111,6 +124,21 @@ export function startPlayoffs(run: RunState): RunState {
   return { ...run, playoffs: createPlayoffs(leagueTable(run.season), run.seed + 2, userTeam(run)) };
 }
 
+// Plays the next step of the playoffs (e.g. every QF first leg), or all of them.
+export function playPlayoffs(run: RunState, data: GameData, howMuch: "step" | "rest"): RunState {
+  if (!run.playoffs) throw new Error("The playoffs haven't started");
+  const teams = teamProfiles(run, data);
+  const playoffs = howMuch === "step" ? playNextStep(run.playoffs, teams) : playRestOfPlayoffs(run.playoffs, teams);
+  return { ...run, playoffs };
+}
+
+// Moves on to the end screen. The playoffs are played out first (a knocked-out
+// user can skip the rest), so the run always ends with a champion.
+export function endRun(run: RunState, data?: GameData): RunState {
+  const done = run.playoffs && !isPlayoffsComplete(run.playoffs) && data ? playPlayoffs(run, data, "rest") : run;
+  return { ...done, ended: true };
+}
+
 // Plays the next league matchday, or every remaining one.
 export function playLeague(run: RunState, data: GameData, howMuch: "matchday" | "rest"): RunState {
   if (!run.season) throw new Error("The season hasn't started");
@@ -133,7 +161,7 @@ export function finishSeason(run: RunState, data: GameData): RunState {
 
 export function finishPlayoffs(run: RunState, data: GameData): RunState {
   const started = run.playoffs ? run : startPlayoffs(run);
-  return { ...started, playoffs: playRestOfPlayoffs(started.playoffs!, teamProfiles(run, data)) };
+  return endRun({ ...started, playoffs: playRestOfPlayoffs(started.playoffs!, teamProfiles(run, data)) });
 }
 
 export const DIFFICULTY_LABEL: Record<Difficulty, string> = { easy: "Easy", normal: "Normal", hard: "Hard" };
@@ -177,17 +205,29 @@ function ordinal(n: number): string {
 export function findUserMatch(run: RunState, data: GameData, key: string) {
   if (!run.season) return null;
   const me = userTeam(run);
-  const match = run.season.matches.find((m) => leagueMatchKey(m) === key);
-  if (!match?.result || (match.home !== me && match.away !== me)) return null;
+  const names = run.draft.teams.map((t) => t.name);
+  let found: { title: string; home: number; away: number; result: MatchResult } | null = null;
+
+  const league = run.season.matches.find((m) => leagueMatchKey(m) === key);
+  if (league?.result) found = { title: `Matchday ${league.matchday}`, home: league.home, away: league.away, result: league.result };
+
+  const knockout = run.playoffs ? playoffMatches(run.playoffs).find((m) => m.key === key) : undefined;
+  if (knockout?.result && knockout.home !== null && knockout.away !== null) {
+    // A second leg's title carries the first-leg score, as the teams were then.
+    const first = knockout.firstLeg ? ` (1st leg: ${names[knockout.away]} ${knockout.firstLeg.homeGoals}–${knockout.firstLeg.awayGoals} ${names[knockout.home]})` : "";
+    found = { title: `${knockout.label}${first}`, home: knockout.home, away: knockout.away, result: knockout.result };
+  }
+
+  if (!found || (found.home !== me && found.away !== me)) return null;
   const profiles = teamProfiles(run, data);
   return {
     key,
-    title: `Matchday ${match.matchday}`,
-    result: match.result,
-    home: profiles[match.home],
-    away: profiles[match.away],
-    homeName: run.draft.teams[match.home].name,
-    awayName: run.draft.teams[match.away].name,
-    userSide: match.home === me ? ("home" as const) : ("away" as const),
+    title: found.title,
+    result: found.result,
+    home: profiles[found.home],
+    away: profiles[found.away],
+    homeName: names[found.home],
+    awayName: names[found.away],
+    userSide: found.home === me ? ("home" as const) : ("away" as const),
   };
 }

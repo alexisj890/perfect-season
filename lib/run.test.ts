@@ -5,13 +5,17 @@ import { createRng } from "@/lib/rng";
 import { autoDraft } from "@/lib/draft/cpu";
 import { currentTurn, isComplete } from "@/lib/draft/draft";
 import { nextMatchday } from "@/lib/season/season";
+import { isPlayoffsComplete, nextUserMatch, playoffMatches, seedOf } from "@/lib/playoffs/playoffs";
 import {
+  endRun,
+  findUserMatch,
   finishDraft,
   finishPlayoffs,
   finishSeason,
   outcomeOf,
   PHASE_ROUTES,
   playLeague,
+  playPlayoffs,
   runPhase,
   runStatusLine,
   runSummary,
@@ -148,5 +152,61 @@ describe("storage", () => {
     expect(loadRun(storage)).toBeNull();
     storage.setItem(RUN_STORAGE_KEY, JSON.stringify({ ...newRun(), version: 999 } as unknown as RunState));
     expect(loadRun(storage)).toBeNull();
+  });
+});
+
+describe("playoffs in a run", () => {
+  // A run that reached the playoffs (seed chosen so the user qualifies).
+  const qualified = (() => {
+    for (let seed = 1; seed < 60; seed++) {
+      const run = startPlayoffs(finishSeason(finishDraft(newRun(seed), data), data));
+      if (runPhase(run) === "playoffs") return run;
+    }
+    throw new Error("no qualifying seed");
+  })();
+  const me = userTeam(qualified);
+
+  it("lists every knockout match with a key, label and the right home side", () => {
+    const matches = playoffMatches(qualified.playoffs!);
+    expect(matches.map((m) => m.key)).toEqual([
+      "qf-1-1", "qf-1-2", "qf-2-1", "qf-2-2", "qf-3-1", "qf-3-2", "qf-4-1", "qf-4-2", "final",
+    ]);
+    const qf1 = qualified.playoffs!.quarterFinals[0];
+    expect(matches[0]).toMatchObject({ label: "Quarter-final, 1st leg", home: qf1.lower, away: qf1.higher });
+    expect(matches[1]).toMatchObject({ label: "Quarter-final, 2nd leg", home: qf1.higher, away: qf1.lower });
+    expect(matches.at(-1)).toMatchObject({ key: "final", neutral: true, home: null });
+  });
+
+  it("finds the user's next knockout match and plays one step at a time", () => {
+    const next = nextUserMatch(qualified.playoffs!, me)!;
+    expect(next.step).toBe("QF leg 1");
+    expect([next.home, next.away]).toContain(me);
+    const after = playPlayoffs(qualified, data, "step");
+    expect(after.playoffs!.quarterFinals.every((t) => t.leg1 && !t.leg2)).toBe(true);
+    expect(seedOf(after.playoffs!, me)).toBeGreaterThan(0);
+  });
+
+  it("opens replays of the user's knockout matches by key, with the first leg in a second leg's title", () => {
+    const run = playPlayoffs(playPlayoffs(qualified, data, "step"), data, "step");
+    const mine = playoffMatches(run.playoffs!).filter((m) => m.result && (m.home === me || m.away === me));
+    expect(mine).toHaveLength(2);
+    const leg2 = findUserMatch(run, data, mine[1].key)!;
+    expect(leg2.title).toMatch(/^Quarter-final, 2nd leg \(1st leg: .+ \d+–\d+ .+\)$/);
+    expect(leg2.result.aggregate).not.toBeNull();
+    const other = playoffMatches(run.playoffs!).find((m) => m.result && m.home !== me && m.away !== me)!;
+    expect(findUserMatch(run, data, other.key)).toBeNull(); // not one of the user's
+  });
+
+  it("stays on the playoffs screen after the final until the player moves on", () => {
+    const done = playPlayoffs(qualified, data, "rest");
+    expect(isPlayoffsComplete(done.playoffs!)).toBe(true);
+    expect(runPhase(done)).toBe("playoffs");
+    expect(runPhase(endRun(done))).toBe("finished");
+  });
+
+  it("plays out the rest of the playoffs when a knocked-out player moves on", () => {
+    const early = endRun(playPlayoffs(qualified, data, "step"), data);
+    expect(isPlayoffsComplete(early.playoffs!)).toBe(true);
+    expect(runPhase(early)).toBe("finished");
   });
 });

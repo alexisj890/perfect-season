@@ -11,7 +11,8 @@
     "test:watch": "vitest",
     "sim": "tsx scripts/simulate-match.ts",
     "odds": "tsx scripts/odds.ts",
-    "season": "tsx scripts/simulate-season.ts"
+    "season": "tsx scripts/simulate-season.ts",
+    "perfect": "tsx scripts/perfect-runs.ts"
   },
   "dependencies": {
     "next": "16.4.0",
