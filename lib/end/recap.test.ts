@@ -1,14 +1,20 @@
 import { describe, expect, it } from "vitest";
 import { loadGameData } from "@/lib/data/load";
 import { matchRatings } from "@/lib/engine/ratings";
-import { finishDraft, finishPlayoffs, finishSeason, outcomeOf, startRun, teamProfiles, userTeam, type RunState } from "@/lib/run";
+import { autoDraft } from "@/lib/draft/cpu";
+import { finishPlayoffs, finishSeason, outcomeOf, startRun, startSeason, teamProfiles, userTeam, type RunState } from "@/lib/run";
 import { leagueMatchKey, matchesOf } from "@/lib/season/season";
 import { runRecap } from "./recap";
 
 const data = loadGameData();
+// The user drafts sharply on easy and badly on hard, so every outcome turns up.
 const finished = (seed: number, difficulty: "easy" | "hard"): RunState => {
   const run = startRun(data, { id: "t", createdAt: "", seed, difficulty, userName: "Alexis FC" });
-  return finishPlayoffs(finishSeason(finishDraft(run, data), data), data);
+  const drafter =
+    difficulty === "easy"
+      ? ({ style: "ignoresChemistry", candidates: 2, temperature: 0.5 } as const)
+      : ({ style: "starChaser", candidates: 6, temperature: 3 } as const);
+  return finishPlayoffs(finishSeason(startSeason({ ...run, draft: autoDraft(run.draft, data, drafter) }), data), data);
 };
 // The first finished run (by seed) whose outcome matches.
 const findRun = (kind: string, difficulty: "easy" | "hard") => {

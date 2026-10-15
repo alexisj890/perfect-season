@@ -16,19 +16,21 @@ export interface DrafterSettings {
 
 export const DRAFT = {
   teamCount: 16,
+  // Tuned with `npm run odds` on the 194-player pool for a strong draft's
+  // 35–0 odds of about 9% / 2.5% / 0.3% (see CLAUDE.md).
   difficulties: {
     easy: {
       styles: { balanced: 0, ignoresChemistry: 1, starChaser: 5, panicFill: 5 },
-      candidates: 6,
-      temperature: 4,
+      candidates: 7,
+      temperature: 5.5,
     },
     normal: {
       styles: { balanced: 1, ignoresChemistry: 1, starChaser: 5, panicFill: 5 },
-      candidates: 5,
-      temperature: 2.5,
+      candidates: 7,
+      temperature: 4,
     },
     hard: {
-      styles: { balanced: 2, ignoresChemistry: 2, starChaser: 3, panicFill: 3 },
+      styles: { balanced: 1, ignoresChemistry: 1, starChaser: 3, panicFill: 3 },
       candidates: 5,
       temperature: 2.5,
     },

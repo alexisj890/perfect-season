@@ -22,6 +22,6 @@ export const DIFFICULTIES: DifficultyInfo[] = [
   {
     id: "hard",
     label: "Hard",
-    rivals: "Most managers draft well. Even a brilliant XI rarely goes unbeaten.",
+    rivals: "Several sharp managers in the league. Even a brilliant XI rarely wins them all.",
   },
 ];

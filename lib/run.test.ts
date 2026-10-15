@@ -28,6 +28,8 @@ import {
 import { clearRun, loadRun, RUN_STORAGE_KEY, saveRun } from "./storage";
 
 const data = loadGameData();
+// Big names anywhere, sloppily: the weak profile from the odds script.
+const WEAK_DRAFTER = { style: "starChaser", candidates: 6, temperature: 3 } as const;
 const newRun = (seed = 1) =>
   startRun(data, { id: "test", createdAt: "2026-01-01T00:00:00.000Z", seed, difficulty: "normal", userName: "Alexis FC" });
 
@@ -76,10 +78,10 @@ describe("phases", () => {
   });
 
   it("finishes straight after the season when the user is relegated", () => {
-    // Find a seed where the auto-drafted user team misses the top 8 on hard.
+    // Find a seed where a badly drafted user team misses the top 8 on hard.
     for (let seed = 1; seed < 40; seed++) {
       const base = startRun(data, { id: "x", createdAt: "", seed, difficulty: "hard" });
-      const run = finishSeason(finishDraft(base, data), data);
+      const run = finishSeason(startSeason({ ...base, draft: autoDraft(base.draft, data, WEAK_DRAFTER) }), data);
       if (outcomeOf(run).kind === "relegated") {
         expect(runPhase(run)).toBe("finished");
         // The playoffs are still played out, so the end screen can name the champion.
