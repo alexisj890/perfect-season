@@ -74,14 +74,15 @@ const attackRating = (players: TeamPlayer[]) => weightedAverage(players, (p) => 
 const defenceRating = (players: TeamPlayer[]) => weightedAverage(players, (p) => 100 - p.attackWeight);
 
 // The ratings of an "average all-time XI": every slot filled by a player
-// rated at the pool's mean for that slot. Cached per data set.
+// rated at the mean of the 16 club-XI players for that slot. Pool-only extras
+// are left out, so adding them doesn't move this yardstick. Cached per data set.
 const averageCache = new WeakMap<GameData, { attack: number; defence: number }>();
 
 function averageRatings(data: GameData): { attack: number; defence: number } {
   const cached = averageCache.get(data);
   if (cached) return cached;
   const players = data.formation.slots.map((slot) => {
-    const pool = data.players.filter((p) => p.homeSlot === slot.id);
+    const pool = data.players.filter((p) => p.homeSlot === slot.id && !p.poolOnly);
     const rating =
       pool.reduce((sum, p) => sum + p.weightedScore * positionFit(p, slot, data).multiplier, 0) /
       pool.length;

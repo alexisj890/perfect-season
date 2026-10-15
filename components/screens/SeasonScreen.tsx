@@ -22,7 +22,7 @@ import { perfectTrack } from "@/lib/playoffs/outcome";
 import { PLAYOFF_TEAMS } from "@/lib/playoffs/playoffs";
 import { lineupOf } from "@/lib/draft/draft";
 import { buildTeam } from "@/lib/engine/team";
-import { PHASE_ROUTES, playLeague, runPhase, startPlayoffs, userTeam } from "@/lib/run";
+import { leaveSeason, PHASE_ROUTES, playLeague, runPhase, userTeam } from "@/lib/run";
 import { matchRatings, seasonPlayerStats } from "@/lib/engine/ratings";
 import { leagueMatchKey, leagueTable, matchdayCount, matchesOf, teamRecord, topScorers } from "@/lib/season/season";
 
@@ -119,7 +119,7 @@ export function SeasonScreen({ data }: { data: GameData }) {
               record={record}
               qualified={positionOf(me) <= PLAYOFF_TEAMS}
               onContinue={() => {
-                const moved = startPlayoffs(run);
+                const moved = leaveSeason(run, data);
                 update(moved);
                 router.push(PHASE_ROUTES[runPhase(moved)]);
               }}

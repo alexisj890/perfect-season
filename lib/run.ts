@@ -124,6 +124,14 @@ export function startPlayoffs(run: RunState): RunState {
   return { ...run, playoffs: createPlayoffs(leagueTable(run.season), run.seed + 2, userTeam(run)) };
 }
 
+// After the last matchday: on to the playoffs — or, for a user who missed the
+// top 8, straight to the end, with the playoffs played out so the end screen
+// can name the champion.
+export function leaveSeason(run: RunState, data: GameData): RunState {
+  const moved = startPlayoffs(run);
+  return runPhase(moved) === "finished" ? endRun(moved, data) : moved;
+}
+
 // Plays the next step of the playoffs (e.g. every QF first leg), or all of them.
 export function playPlayoffs(run: RunState, data: GameData, howMuch: "step" | "rest"): RunState {
   if (!run.playoffs) throw new Error("The playoffs haven't started");
@@ -156,7 +164,7 @@ export function finishDraft(run: RunState, data: GameData): RunState {
 
 export function finishSeason(run: RunState, data: GameData): RunState {
   const started = run.season ? run : startSeason(run);
-  return startPlayoffs({ ...started, season: playRestOfSeason(started.season!, teamProfiles(run, data)) });
+  return leaveSeason({ ...started, season: playRestOfSeason(started.season!, teamProfiles(run, data)) }, data);
 }
 
 export function finishPlayoffs(run: RunState, data: GameData): RunState {

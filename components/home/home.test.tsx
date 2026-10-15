@@ -24,6 +24,14 @@ describe("NewRunForm", () => {
     expect(onStart).toHaveBeenCalledWith({ teamName: "Alexis FC", difficulty: "hard" });
   });
 
+  it("starts from the last run's name and difficulty when given them (Try again)", () => {
+    const onStart = vi.fn();
+    render(<NewRunForm hasRunInProgress={false} defaults={{ teamName: "Alexis FC", difficulty: "hard" }} onStart={onStart} />);
+    expect((screen.getByLabelText("Team name") as HTMLInputElement).value).toBe("Alexis FC");
+    fireEvent.click(screen.getByRole("button", { name: "Start draft" }));
+    expect(onStart).toHaveBeenCalledWith({ teamName: "Alexis FC", difficulty: "hard" });
+  });
+
   it("asks for confirmation before replacing a run in progress", () => {
     const onStart = vi.fn();
     render(<NewRunForm hasRunInProgress onStart={onStart} />);

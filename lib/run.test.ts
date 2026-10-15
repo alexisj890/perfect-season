@@ -82,6 +82,9 @@ describe("phases", () => {
       const run = finishSeason(finishDraft(base, data), data);
       if (outcomeOf(run).kind === "relegated") {
         expect(runPhase(run)).toBe("finished");
+        // The playoffs are still played out, so the end screen can name the champion.
+        expect(isPlayoffsComplete(run.playoffs!)).toBe(true);
+        expect(run.ended).toBe(true);
         return;
       }
     }

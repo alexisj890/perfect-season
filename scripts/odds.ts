@@ -9,7 +9,8 @@
 // level after extra time and then winning the shootout. A two-legged tie counts
 // as two wins whenever the user goes through, even after losing or drawing a leg.
 //
-// Usage: npm run odds -- [--drafts 20] [--seasons 2000] [--difficulty normal]
+// Usage: npm run odds -- [--drafts 20] [--seasons 2000] [--difficulty normal] [--club-xis-only]
+//   --club-xis-only  draft from the 176 club-XI players only (leaves out the pool-only extras)
 
 import { loadGameData } from "@/lib/data/load";
 import { DRAFT, type Difficulty } from "@/lib/draft/config";
@@ -51,7 +52,8 @@ type Contest =
     }
   | { kind: "tie"; user: TeamProfile; opponent: TeamProfile; bottomQuarterOpponent: false };
 
-const data = loadGameData();
+const allData = loadGameData();
+const data = args.includes("--club-xis-only") ? { ...allData, players: allData.players.filter((p) => !p.poolOnly) } : allData;
 const strength = (t: TeamProfile) => (t.attack + t.defence) / 2;
 
 // The user's 35 matches. Going 30–0 makes the user the 1st seed, so they meet
@@ -175,7 +177,7 @@ function mismatchCheck() {
   return { win: wins / n, draw: draws / n };
 }
 
-console.log(`${DRAFTS} drafts per row, ${SEASONS} seasons per draft, ${FIXTURE_SIMS} sims per fixture\n`);
+console.log(`${data.players.length}-player pool · ${DRAFTS} drafts per row, ${SEASONS} seasons per draft, ${FIXTURE_SIMS} sims per fixture\n`);
 const m = mismatchCheck();
 console.log(`Fixed mismatch (2nd–3rd best at every slot vs 14th–15th): win ${pct(m.win)}, draw ${pct(m.draw)}\n`);
 console.log(

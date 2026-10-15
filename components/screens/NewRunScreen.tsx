@@ -19,6 +19,9 @@ export function NewRunScreen({ data }: { data: GameData }) {
   const { run, update } = useSavedRun();
   const [revealing, setRevealing] = useState<RunState | null>(null);
   const inProgress = run !== null && runPhase(run) !== "finished";
+  // After a finished run, offer the same team name and difficulty again.
+  const lastName = run ? run.draft.teams[userTeam(run)].name : "";
+  const defaults = run && !inProgress ? { teamName: lastName === "Your XI" ? "" : lastName, difficulty: run.difficulty } : undefined;
 
   // Next.js keeps this page alive in the background after you leave it. Close
   // the reveal when it's hidden, so coming back later shows a fresh form rather
@@ -46,7 +49,9 @@ export function NewRunScreen({ data }: { data: GameData }) {
         </Link>
       </div>
       <div className="rounded-xl border border-border bg-surface p-6">
-        <NewRunForm hasRunInProgress={inProgress && !revealing} onStart={start} />
+        {/* Keyed by the run, so the starting values follow the saved run even when
+            Next.js has kept this page alive from an earlier visit. */}
+        <NewRunForm key={run?.id ?? "none"} hasRunInProgress={inProgress && !revealing} defaults={defaults} onStart={start} />
       </div>
       {revealing && (
         <DraftReveal

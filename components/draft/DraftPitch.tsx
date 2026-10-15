@@ -6,6 +6,7 @@
 // become clickable.
 
 import type { FormationSlot, Player, SlotId } from "@/lib/data/types";
+import { inset, VERTICAL_PITCH_HEIGHT, VerticalPitchMarkings } from "@/components/ui/VerticalPitch";
 import { displayRating, FIT_STYLE, surname, type SlotOption } from "./draftView";
 
 interface Props {
@@ -16,30 +17,13 @@ interface Props {
   onPick: (slot: SlotId) => void;
 }
 
-// The pitch is drawn 100 wide × 130 tall. Slots are pulled slightly inward from
-// the CSV coordinates so the labels under the keeper and wingers aren't clipped.
-const HEIGHT = 130;
-const inset = (n: number, margin: number) => margin + (n * (100 - 2 * margin)) / 100;
-
 export function DraftPitch({ slots, lineup, options, canPick, onPick }: Props) {
   const optionFor = new Map(options?.map((o) => [o.slot, o]));
 
   return (
     <div className="relative aspect-[100/130] h-full w-full overflow-hidden rounded-2xl border border-border">
-      <svg viewBox={`0 0 100 ${HEIGHT}`} className="absolute inset-0 h-full w-full" aria-hidden="true">
-        <rect width={100} height={HEIGHT} className="fill-pitch" />
-        {Array.from({ length: 10 }, (_, i) => (
-          <rect key={i} y={i * 13} width={100} height={6.5} fill="white" opacity={0.035} />
-        ))}
-        <g className="stroke-pitch-line" fill="none" strokeWidth={0.4} opacity={0.7}>
-          <rect x={3} y={3} width={94} height={HEIGHT - 6} />
-          <line x1={3} y1={HEIGHT / 2} x2={97} y2={HEIGHT / 2} />
-          <circle cx={50} cy={HEIGHT / 2} r={11} />
-          <rect x={22} y={3} width={56} height={18} />
-          <rect x={22} y={HEIGHT - 21} width={56} height={18} />
-          <rect x={36} y={3} width={28} height={7} />
-          <rect x={36} y={HEIGHT - 10} width={28} height={7} />
-        </g>
+      <svg viewBox={`0 0 100 ${VERTICAL_PITCH_HEIGHT}`} className="absolute inset-0 h-full w-full" aria-hidden="true">
+        <VerticalPitchMarkings />
       </svg>
 
       {slots.map((slot) => {

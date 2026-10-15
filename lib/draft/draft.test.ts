@@ -133,12 +133,12 @@ function autoPickOnce(state: DraftState) {
 describe("a full draft", () => {
   const done = autoDraft(createDraft(data, 3), data);
 
-  it("drafts every player exactly once", () => {
+  it("makes 176 picks, never the same player twice, leaving 18 undrafted", () => {
     expect(isComplete(done)).toBe(true);
     expect(currentTurn(done)).toBeNull();
     expect(done.picks).toHaveLength(176);
     expect(new Set(done.picks.map((p) => p.playerId)).size).toBe(176);
-    expect(availablePlayers(done, data)).toHaveLength(0);
+    expect(availablePlayers(done, data)).toHaveLength(data.players.length - 176);
   });
 
   it("fills all 11 slots for every team, giving lineups the engine accepts", () => {

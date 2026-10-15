@@ -11,12 +11,14 @@ export const TEAM_NAME_MAX = 24;
 
 interface Props {
   hasRunInProgress: boolean;
+  // Starting values, e.g. the last run's team name and difficulty for "Try again".
+  defaults?: { teamName: string; difficulty: Difficulty };
   onStart: (choice: { teamName: string; difficulty: Difficulty }) => void;
 }
 
-export function NewRunForm({ hasRunInProgress, onStart }: Props) {
-  const [teamName, setTeamName] = useState("");
-  const [difficulty, setDifficulty] = useState<Difficulty>("normal");
+export function NewRunForm({ hasRunInProgress, defaults, onStart }: Props) {
+  const [teamName, setTeamName] = useState(defaults?.teamName ?? "");
+  const [difficulty, setDifficulty] = useState<Difficulty>(defaults?.difficulty ?? "normal");
   const [confirming, setConfirming] = useState(false);
 
   // When the page is hidden (Next.js keeps it alive in the background), drop a

@@ -111,7 +111,7 @@ export function SidePanel({ latestMatchday, matchesOn, scorers, names, user, pla
 }
 
 // The user's players over the season: average rating, goals, assists and Man of the Match awards.
-function SquadList({ squad, playersById }: { squad: SeasonPlayerStats[]; playersById: Map<string, Player> }) {
+export function SquadList({ squad, playersById }: { squad: SeasonPlayerStats[]; playersById: Map<string, Player> }) {
   const apps = squad[0]?.apps ?? 0;
   if (apps === 0) return <p className="text-sm text-muted">Ratings appear after your first match.</p>;
   return (

@@ -74,6 +74,7 @@ export function parsePlayers(csv: string): Player[] {
       name: r.player,
       club: r.club,
       homeSlot: r.slot,
+      poolOnly: r.pool_only === "yes",
       naturalPositions: positionList(r.natural_position, "/"),
       secondaryPositions: positionList(r.secondary_positions, ","),
       nationality: r.nationality,

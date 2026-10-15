@@ -31,16 +31,29 @@ describe("slugify", () => {
 });
 
 describe("players", () => {
-  it("has 16 clubs × 11 players with unique ids", () => {
-    expect(data.players).toHaveLength(176);
+  it("has 16 club XIs of 11 plus 18 pool-only extras, with no duplicates", () => {
+    expect(data.players).toHaveLength(194);
+    expect(data.players.filter((p) => !p.poolOnly)).toHaveLength(176);
+    expect(data.players.filter((p) => p.poolOnly)).toHaveLength(18);
     expect(clubs).toHaveLength(16);
-    expect(new Set(data.players.map((p) => p.id)).size).toBe(176);
+    expect(new Set(data.players.map((p) => p.id)).size).toBe(194);
+    expect(new Set(data.players.map((p) => p.name)).size).toBe(194);
   });
 
-  it("fills every formation slot exactly once per club", () => {
+  it("fills every formation slot exactly once per club XI", () => {
     for (const club of clubs) {
-      const slots = data.players.filter((p) => p.club === club).map((p) => p.homeSlot);
+      const slots = data.players.filter((p) => p.club === club && !p.poolOnly).map((p) => p.homeSlot);
       expect(slots.sort(), club).toEqual([...slotIds].sort());
+    }
+  });
+
+  it("takes the pool-only extras from the notable omissions, at their assigned peak club", () => {
+    const omissions = new Map(data.notableOmissions.map((o) => [o.player, o]));
+    for (const p of data.players.filter((x) => x.poolOnly)) {
+      const omission = omissions.get(p.name);
+      expect(omission, p.name).toBeDefined();
+      expect(p.club, p.name).toBe(omission!.assignedPeakClub);
+      expect(slotIds, p.name).toContain(p.homeSlot);
     }
   });
 

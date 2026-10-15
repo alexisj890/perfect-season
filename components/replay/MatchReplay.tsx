@@ -350,7 +350,7 @@ function FullTime(props: {
             Player ratings
           </button>
           <Link href={backHref} className="rounded-full bg-accent px-4 py-2 text-sm font-semibold text-accent-foreground hover:brightness-110">
-            {backHref === "/playoffs" ? "Back to the playoffs" : "Back to season"}
+            {backHref === "/playoffs" ? "Back to the playoffs" : backHref === "/end" ? "Back to your season" : "Back to season"}
           </Link>
         </div>
       </div>

@@ -32,9 +32,9 @@ describe("draft helpers", () => {
       "Cesc Fàbregas",
     ]);
     const keepers = filterPool(data.players, { search: "", group: "GK", club: "ALL" });
-    expect(keepers).toHaveLength(16);
-    expect(keepers[0].weightedScore).toBeGreaterThanOrEqual(keepers[15].weightedScore);
-    expect(filterPool(data.players, { search: "", group: "ALL", club: "Ajax" })).toHaveLength(11);
+    expect(keepers).toHaveLength(21); // 16 club XI keepers + 5 pool-only extras
+    expect(keepers[0].weightedScore).toBeGreaterThanOrEqual(keepers[20].weightedScore);
+    expect(filterPool(data.players, { search: "", group: "ALL", club: "Ajax" })).toHaveLength(12); // XI + Frank de Boer
   });
 
   it("ranks open slots by the player's rating there", () => {
@@ -55,10 +55,10 @@ describe("PlayerPool", () => {
     const onSelect = vi.fn();
     render(<PlayerPool players={data.players} clubs={clubs} selectedId={null} onSelect={onSelect} />);
     const list = screen.getByRole("list", { name: "Available players" });
-    expect(within(list).getAllByRole("button")).toHaveLength(176);
+    expect(within(list).getAllByRole("button")).toHaveLength(194);
 
     fireEvent.click(screen.getByRole("button", { name: "GK" }));
-    expect(within(list).getAllByRole("button")).toHaveLength(16);
+    expect(within(list).getAllByRole("button")).toHaveLength(21);
 
     fireEvent.change(screen.getByLabelText("Search players or clubs"), { target: { value: "buffon" } });
     const rows = within(list).getAllByRole("button");

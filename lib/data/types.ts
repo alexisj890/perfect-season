@@ -14,7 +14,12 @@ export interface Player {
   id: string; // slug of the name, e.g. "xavi-hernandez"
   name: string;
   club: string;
-  homeSlot: SlotId; // the slot this player fills in their club's all-time XI
+  // The slot this player fills in their club's all-time XI — or, for a
+  // pool-only player, the slot they'd naturally fill.
+  homeSlot: SlotId;
+  // An extra draftable player who isn't in their club's all-time XI (from
+  // notable_omissions.csv). Left out of club XIs and the engine's average XI.
+  poolOnly: boolean;
   naturalPositions: Position[];
   secondaryPositions: Position[];
   nationality: string;
