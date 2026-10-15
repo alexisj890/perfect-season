@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { useLayoutEffect, useMemo, useRef, useState } from "react";
 import { MatchRatingsModal } from "@/components/ratings/MatchRatingsModal";
 import { DevPanel } from "@/components/DevPanel";
+import { HonoursStatus } from "@/components/HonoursStatus";
 import { PerfectTracker } from "@/components/PerfectTracker";
 import { LastResultCard } from "@/components/season/LastResultCard";
 import { LeagueTable } from "@/components/season/LeagueTable";
@@ -17,7 +18,7 @@ import { SidePanel } from "@/components/season/SidePanel";
 import { useRequirePhase } from "@/components/useRequirePhase";
 import { useSavedRun } from "@/components/useSavedRun";
 import type { GameData } from "@/lib/data/types";
-import { perfectSeason, perfectTrack } from "@/lib/playoffs/outcome";
+import { perfectTrack } from "@/lib/playoffs/outcome";
 import { PLAYOFF_TEAMS } from "@/lib/playoffs/playoffs";
 import { lineupOf } from "@/lib/draft/draft";
 import { buildTeam } from "@/lib/engine/team";
@@ -48,8 +49,6 @@ export function SeasonScreen({ data }: { data: GameData }) {
   const positionOf = (team: number) => table.findIndex((r) => r.team === team) + 1;
   const record = teamRecord(season, me);
   const marks = perfectTrack(season, run.playoffs, me);
-  const progress = perfectSeason(season, run.playoffs, me);
-  const firstDrop = marks.findIndex((m) => m === "dropped");
   const totalMatchdays = matchdayCount(season);
   const latest = latestMatchday(season);
   const next = nextMatchFor(season, me);
@@ -85,15 +84,7 @@ export function SeasonScreen({ data }: { data: GameData }) {
         </div>
         <div className="flex items-center gap-3">
           <PerfectTracker marks={marks} />
-          <span className="text-xs tabular-nums text-muted">
-            {progress.alive ? (
-              <>
-                <b className="text-accent">{progress.wins}</b> of {progress.target} · perfect season alive
-              </>
-            ) : (
-              `Perfect season ended on matchday ${firstDrop + 1}`
-            )}
-          </span>
+          <HonoursStatus season={season} playoffs={run.playoffs} user={me} matchIndexOfFirstLoss={marks.indexOf("loss")} />
         </div>
         <button
           type="button"

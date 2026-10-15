@@ -5,7 +5,7 @@ import { createDraft, lineupOf, userTeamIndex } from "@/lib/draft/draft";
 import type { MatchResult } from "@/lib/engine/match";
 import { buildTeam } from "@/lib/engine/team";
 import { createSeason, leagueTable, playRestOfSeason, type SeasonState } from "@/lib/season/season";
-import { perfectSeason, perfectTrack, runOutcome } from "./outcome";
+import { invincibleSeason, perfectSeason, perfectTrack, runOutcome } from "./outcome";
 import {
   champion,
   createPlayoffs,
@@ -204,7 +204,7 @@ describe("runOutcome and perfectSeason", () => {
     const league = leagueWhere(me);
     const playoffs = playoffsWhere(league, me, { userWins: true });
     expect(perfectSeason(league, playoffs, me)).toEqual({ wins: 35, target: 35, alive: true, perfect: true });
-    expect(runOutcome(league, playoffs, me)).toEqual({ kind: "champion", perfect: true });
+    expect(runOutcome(league, playoffs, me)).toEqual({ kind: "champion", perfect: true, invincible: true });
   });
 
   it("counts a tie won on aggregate as two wins even after losing a leg", () => {
@@ -217,14 +217,15 @@ describe("runOutcome and perfectSeason", () => {
   it("counts a final won on penalties", () => {
     const league = leagueWhere(me);
     const playoffs = playoffsWhere(league, me, { userWins: true, finalOnPenalties: true });
-    expect(runOutcome(league, playoffs, me)).toEqual({ kind: "champion", perfect: true });
+    expect(runOutcome(league, playoffs, me)).toEqual({ kind: "champion", perfect: true, invincible: true });
   });
 
   it("is a non-perfect title after one league draw", () => {
     const league = leagueWhere(me, [{ matchday: 4, score: [1, 1] }]);
     const playoffs = playoffsWhere(league, me, { userWins: true });
     expect(perfectSeason(league, playoffs, me)).toMatchObject({ alive: false, perfect: false });
-    expect(runOutcome(league, playoffs, me)).toEqual({ kind: "champion", perfect: false });
+    // …but still unbeaten, so an Invincible season.
+    expect(runOutcome(league, playoffs, me)).toEqual({ kind: "champion", perfect: false, invincible: true });
   });
 
   it("reports elimination by round", () => {
@@ -280,24 +281,32 @@ describe("perfectTrack (the 35 progress dots)", () => {
     expect(count(perfectTrack(league, playoffsWhere(league, me, { userWins: true }), me), "win")).toBe(35);
   });
 
-  it("marks a dropped league match on its matchday", () => {
-    const league = leagueWhere(me, [{ matchday: 4, score: [1, 1] }]);
+  it("marks a draw and a defeat on their matchdays", () => {
+    const league = leagueWhere(me, [
+      { matchday: 4, score: [1, 1] },
+      { matchday: 9, score: [me === 0 ? 0 : 1, me === 0 ? 1 : 0] },
+    ]);
     const marks = perfectTrack(league, null, me);
-    expect(marks[3]).toBe("dropped");
-    expect(count(marks.slice(0, 30), "win")).toBe(29);
+    expect(marks[3]).toBe("draw");
+    const md9 = league.matches.find((m) => m.matchday === 9 && (m.home === me || m.away === me))!;
+    expect(marks[8]).toBe(md9.home === me ? (md9.result!.homeGoals < md9.result!.awayGoals ? "loss" : "win") : md9.result!.awayGoals < md9.result!.homeGoals ? "loss" : "win");
+    expect(count(marks.slice(0, 30), "win")).toBe(30 - count(marks.slice(0, 30), "draw") - count(marks.slice(0, 30), "loss"));
     expect(marks.slice(30)).toEqual(Array(5).fill("upcoming"));
   });
 
-  it("counts both legs of a tie won after losing a leg", () => {
+  it("shows each leg's own result, even in a tie the user went through", () => {
     const league = leagueWhere(me);
-    const marks = perfectTrack(league, playoffsWhere(league, me, { userWins: true, loseALeg: true }), me);
-    expect(marks.slice(30, 34)).toEqual(["win", "win", "win", "win"]);
+    const playoffs = playoffsWhere(league, me, { userWins: true, loseALeg: true });
+    expect(perfectTrack(league, playoffs, me).slice(30, 35)).toEqual(["loss", "win", "loss", "win", "win"]);
+    // The Perfect season counts the ties as won; the Invincible season is broken by the lost legs.
+    expect(perfectSeason(league, playoffs, me).perfect).toBe(true);
+    expect(invincibleSeason(league, playoffs, me).invincible).toBe(false);
   });
 
-  it("drops a lost tie and voids the rounds never reached", () => {
+  it("marks a lost tie's legs and voids the rounds never reached", () => {
     const league = leagueWhere(me);
     const marks = perfectTrack(league, playoffsWhere(league, me, { userWins: false }), me);
-    expect(marks.slice(30)).toEqual(["dropped", "dropped", "void", "void", "void"]);
+    expect(marks.slice(30)).toEqual(["win", "loss", "void", "void", "void"]);
   });
 
   it("voids the knockouts after relegation", () => {
@@ -310,5 +319,50 @@ describe("perfectTrack (the 35 progress dots)", () => {
       })),
     };
     expect(perfectTrack(league, null, me).slice(30)).toEqual(Array(5).fill("void"));
+  });
+});
+
+describe("invincibleSeason (unbeaten: wins and draws, no defeats)", () => {
+  const me = 0;
+
+  it("is invincible with league draws, as long as nothing is lost", () => {
+    const league = leagueWhere(me, [
+      { matchday: 3, score: [2, 2] },
+      { matchday: 11, score: [0, 0] },
+    ]);
+    const playoffs = playoffsWhere(league, me, { userWins: true });
+    expect(invincibleSeason(league, playoffs, me)).toEqual({ won: 33, drawn: 2, lost: 0, target: 35, alive: true, invincible: true });
+    expect(perfectSeason(league, playoffs, me).perfect).toBe(false);
+  });
+
+  it("is broken by any defeat, including a knockout leg the user still goes through", () => {
+    const league = leagueWhere(me);
+    const playoffs = playoffsWhere(league, me, { userWins: true, loseALeg: true });
+    expect(invincibleSeason(league, playoffs, me)).toMatchObject({ lost: 2, alive: false, invincible: false });
+  });
+
+  it("counts a final won on penalties, and loses it on a lost shootout", () => {
+    const league = leagueWhere(me);
+    expect(invincibleSeason(league, playoffsWhere(league, me, { userWins: true, finalOnPenalties: true }), me).invincible).toBe(true);
+    expect(invincibleSeason(league, playoffsWhere(league, me, { userWins: false, finalOnPenalties: true }), me).invincible).toBe(false);
+  });
+
+  it("is alive mid-season while unbeaten, and not before the playoffs are played", () => {
+    const league = leagueWhere(me, [{ matchday: 2, score: [1, 1] }]);
+    expect(invincibleSeason(league, null, me)).toMatchObject({ drawn: 1, lost: 0, alive: true, invincible: false });
+  });
+
+  it("is impossible after missing the playoffs, even without a defeat", () => {
+    // The user draws every match; everyone else beats each other, pushing the user out of the top 8.
+    const s = createSeason(16, 1, me);
+    const league: SeasonState = {
+      ...s,
+      matches: s.matches.map((m) => ({
+        ...m,
+        result: m.home === me || m.away === me ? result(0, 0) : m.home < m.away ? result(1, 0) : result(0, 1),
+      })),
+    };
+    expect(runOutcome(league, null, me).kind).toBe("relegated");
+    expect(invincibleSeason(league, null, me)).toMatchObject({ lost: 0, alive: false });
   });
 });

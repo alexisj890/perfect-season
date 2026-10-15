@@ -30,8 +30,8 @@ const names = run.draft.teams.map((t) => t.name);
 
 describe("PerfectTracker", () => {
   it("describes progress for screen readers", () => {
-    render(<PerfectTracker marks={["win", "win", "dropped", ...Array(32).fill("upcoming")]} />);
-    expect(screen.getByRole("img", { name: "Perfect season: 2 of 35 won" })).toBeTruthy();
+    render(<PerfectTracker marks={["win", "win", "draw", "loss", ...Array(31).fill("upcoming")]} />);
+    expect(screen.getByRole("img", { name: "Season so far: 2 won, 1 drawn, 1 lost, of 35" })).toBeTruthy();
   });
 });
 

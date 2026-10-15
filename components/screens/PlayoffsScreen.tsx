@@ -5,6 +5,7 @@
 
 import { useRouter } from "next/navigation";
 import { DevPanel } from "@/components/DevPanel";
+import { HonoursStatus } from "@/components/HonoursStatus";
 import { PerfectTracker } from "@/components/PerfectTracker";
 import { Bracket } from "@/components/playoffs/Bracket";
 import { UpNext } from "@/components/playoffs/UpNext";
@@ -12,7 +13,7 @@ import { YourPath } from "@/components/playoffs/YourPath";
 import { useRequirePhase } from "@/components/useRequirePhase";
 import { useSavedRun } from "@/components/useSavedRun";
 import type { GameData } from "@/lib/data/types";
-import { perfectSeason, perfectTrack, runOutcome } from "@/lib/playoffs/outcome";
+import { perfectTrack, runOutcome } from "@/lib/playoffs/outcome";
 import { champion, nextStep, nextUserMatch, playoffMatches, tieWinner } from "@/lib/playoffs/playoffs";
 import { endRun, PHASE_ROUTES, playPlayoffs, runPhase, userTeam } from "@/lib/run";
 
@@ -30,7 +31,6 @@ export function PlayoffsScreen({ data }: { data: GameData }) {
   const step = nextStep(playoffs);
   const userMatch = nextUserMatch(playoffs, me);
   const marks = perfectTrack(run.season, playoffs, me);
-  const progress = perfectSeason(run.season, playoffs, me);
   const outcome = runOutcome(run.season, playoffs, me);
   const winner = champion(playoffs);
   const myMatches = playoffMatches(playoffs).filter((m) => m.result && (m.home === me || m.away === me));
@@ -54,7 +54,11 @@ export function PlayoffsScreen({ data }: { data: GameData }) {
         <div className="text-sm text-muted">
           <b className="text-foreground">Playoffs</b> ·{" "}
           {outcome.kind === "champion"
-            ? "Champions!"
+            ? outcome.perfect
+              ? "Champions · Perfect season"
+              : outcome.invincible
+                ? "Champions · Invincible season"
+                : "Champions!"
             : lostFinal
               ? "Runners-up"
               : knockedOutBy
@@ -65,17 +69,7 @@ export function PlayoffsScreen({ data }: { data: GameData }) {
         </div>
         <div className="flex items-center gap-3">
           <PerfectTracker marks={marks} />
-          <span className="text-xs tabular-nums text-muted">
-            {progress.alive ? (
-              <>
-                <b className="text-accent">{progress.wins}</b> of {progress.target} · perfect season alive
-              </>
-            ) : progress.perfect ? (
-              "Perfect season!"
-            ) : (
-              "Perfect season ended"
-            )}
-          </span>
+          <HonoursStatus season={run.season} playoffs={playoffs} user={me} matchIndexOfFirstLoss={marks.indexOf("loss")} />
         </div>
       </div>
 
@@ -89,6 +83,7 @@ export function PlayoffsScreen({ data }: { data: GameData }) {
             knockedOutBy={knockedOutBy}
             championName={winner !== null ? names[winner] : null}
             userIsChampion={winner === me}
+            honour={outcome.kind === "champion" ? (outcome.perfect ? "perfect" : outcome.invincible ? "invincible" : null) : null}
             onPlay={() => update(playPlayoffs(run, data, "step"))}
             onWatch={() => {
               // Play the step (results are decided now), then watch the user's match.

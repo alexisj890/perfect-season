@@ -18,6 +18,7 @@ interface Props {
   knockedOutBy: string | null; // set once the user is out
   championName: string | null;
   userIsChampion: boolean;
+  honour?: "perfect" | "invincible" | null; // the user's season honour, if they won it
   onPlay: () => void;
   onWatch: () => void;
   onSimRest: () => void;
@@ -25,7 +26,7 @@ interface Props {
 }
 
 export function UpNext(props: Props) {
-  const { step, userMatch, names, user, knockedOutBy, championName, userIsChampion, onPlay, onWatch, onSimRest, onFinish } = props;
+  const { step, userMatch, names, user, knockedOutBy, championName, userIsChampion, honour = null, onPlay, onWatch, onSimRest, onFinish } = props;
   const primary = "flex-1 rounded-full bg-accent px-4 py-2 font-semibold text-accent-foreground hover:brightness-110";
   const secondary = "rounded-full border border-border px-4 py-2 text-sm font-semibold hover:border-accent";
 
@@ -34,7 +35,15 @@ export function UpNext(props: Props) {
       <section className="flex flex-col gap-3 rounded-xl border border-accent bg-surface p-4" aria-label="Playoffs complete">
         <div className="text-xs font-semibold uppercase tracking-widest text-muted">Playoffs complete</div>
         <div className="text-2xl font-bold">🏆 {championName}</div>
-        <p className="text-sm text-muted">{userIsChampion ? "You're the champions!" : "The trophy goes elsewhere this time."}</p>
+        <p className="text-sm text-muted">
+          {!userIsChampion
+            ? "The trophy goes elsewhere this time."
+            : honour === "perfect"
+              ? "Champions — and a Perfect season: 35 wins from 35!"
+              : honour === "invincible"
+                ? "Champions — and an Invincible season: unbeaten all year!"
+                : "You're the champions!"}
+        </p>
         <button type="button" onClick={onFinish} className={primary}>
           See how it ended
         </button>

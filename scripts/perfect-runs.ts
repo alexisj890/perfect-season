@@ -3,8 +3,10 @@
 // Plays complete runs with the real game code — start a run, draft, play the
 // league matchday by matchday, then the real playoffs — and keeps starting new
 // runs until one goes 35–0, counting how many it took. An attempt stops as soon
-// as the user drops a result, so failed attempts are cheap. Each "trial" is one
-// hunt for a perfect season; several trials give a typical number of runs.
+// as the user loses a match (a draw ends the perfect season but the run keeps
+// going, since an Invincible season — unbeaten — is still possible). Each
+// "trial" is one hunt for a perfect season; several trials give a typical
+// number of runs. Invincible seasons met along the way are counted too.
 //
 // The user's picks are made automatically in a chosen style:
 //   strong   sharp best-available (how a good human drafts)
@@ -16,10 +18,10 @@
 import { loadGameData } from "@/lib/data/load";
 import type { Difficulty } from "@/lib/draft/config";
 import { autoDraft, type Drafter } from "@/lib/draft/cpu";
-import { perfectSeason } from "@/lib/playoffs/outcome";
+import { invincibleSeason, perfectSeason } from "@/lib/playoffs/outcome";
 import { isPlayoffsComplete } from "@/lib/playoffs/playoffs";
 import { playLeague, playPlayoffs, startPlayoffs, startRun, startSeason, userTeam, type RunState } from "@/lib/run";
-import { isSeasonComplete, teamRecord } from "@/lib/season/season";
+import { isSeasonComplete } from "@/lib/season/season";
 
 const args = process.argv.slice(2);
 const arg = (name: string, fallback: string) => {
@@ -38,26 +40,37 @@ const MINUTES_PER_RUN = Number(arg("minutes", "10")); // a human's time per run,
 
 const data = loadGameData();
 
-type Ending = "perfect" | "league" | "playoffs";
+type Ending = "perfect" | "invincible" | "league" | "playoffs";
 
-// Plays one run until it's perfect or the user drops a result.
+// Plays one run until it's over or the user can no longer go unbeaten.
+// `wins` is how many matches were won while the perfect season was alive.
 function attempt(seed: number, difficulty: Difficulty, drafter: Drafter): { ending: Ending; wins: number } {
   let run: RunState = startRun(data, { id: `p-${seed}`, createdAt: "", seed, difficulty });
   run = startSeason({ ...run, draft: autoDraft(run.draft, data, drafter) });
   const me = userTeam(run);
+  let wins = 0;
+  const perfectWins = () => {
+    const progress = perfectSeason(run.season!, run.playoffs, me);
+    if (progress.alive) wins = progress.wins;
+  };
 
   while (!isSeasonComplete(run.season!)) {
     run = playLeague(run, data, "matchday");
-    const record = teamRecord(run.season!, me);
-    if (!record.stillPerfect) return { ending: "league", wins: record.won };
+    perfectWins();
+    if (!invincibleSeason(run.season!, null, me).alive) return { ending: "league", wins };
   }
   run = startPlayoffs(run);
   while (!isPlayoffsComplete(run.playoffs!)) {
     run = playPlayoffs(run, data, "step");
-    const progress = perfectSeason(run.season!, run.playoffs, me);
-    if (!progress.alive) return { ending: "playoffs", wins: progress.wins };
+    perfectWins();
+    // A tie won after losing a leg can still be perfect, so only stop once both are gone.
+    if (!invincibleSeason(run.season!, run.playoffs, me).alive && !perfectSeason(run.season!, run.playoffs, me).alive) {
+      return { ending: "playoffs", wins };
+    }
   }
-  return perfectSeason(run.season!, run.playoffs, me).perfect ? { ending: "perfect", wins: 35 } : { ending: "playoffs", wins: 0 };
+  if (perfectSeason(run.season!, run.playoffs, me).perfect) return { ending: "perfect", wins: 35 };
+  if (invincibleSeason(run.season!, run.playoffs, me).invincible) return { ending: "invincible", wins };
+  return { ending: "playoffs", wins };
 }
 
 function median(xs: number[]): number {
@@ -82,6 +95,7 @@ for (const profileName of profileNames) {
     const runsNeeded: number[] = [];
     let totalRuns = 0;
     let perfects = 0;
+    let invincibles = 0; // unbeaten but not perfect
     let lostInLeague = 0;
     let lostInPlayoffs = 0;
     let bestFailure = 0;
@@ -92,11 +106,12 @@ for (const profileName of profileNames) {
         runs++;
         const result = attempt(seedBase++, difficulty, drafter);
         if (result.ending === "perfect") found = true;
+        else if (result.ending === "invincible") invincibles++;
         else {
           if (result.ending === "league") lostInLeague++;
           else lostInPlayoffs++;
-          bestFailure = Math.max(bestFailure, result.wins);
         }
+        if (result.ending !== "perfect") bestFailure = Math.max(bestFailure, result.wins);
       }
       totalRuns += runs;
       if (found) {
@@ -106,15 +121,17 @@ for (const profileName of profileNames) {
       process.stdout.write(`  ${profileName}/${difficulty} trial ${trial + 1}: ${found ? `perfect on run ${runs}` : `none in ${runs} runs`}\n`);
     }
     const chance = perfects / totalRuns;
+    const unbeaten = (perfects + invincibles) / totalRuns; // a perfect season is unbeaten too
     const typical = runsNeeded.length ? median(runsNeeded) : null;
     console.log(
       `\n${profileName.toUpperCase()} draft · ${difficulty.toUpperCase()}\n` +
         `  perfect seasons: ${perfects} in ${totalRuns} runs → about 1 in ${chance > 0 ? Math.round(1 / chance) : `>${totalRuns}`} (${(chance * 100).toFixed(2)}%)\n` +
+        `  invincible (unbeaten) seasons, perfect ones included: ${perfects + invincibles} → about 1 in ${unbeaten > 0 ? Math.round(1 / unbeaten) : `>${totalRuns}`} (${(unbeaten * 100).toFixed(2)}%)\n` +
         (typical !== null
           ? `  runs needed per trial: ${runsNeeded.join(", ")} → median ${typical}, average ${Math.round(runsNeeded.reduce((a, b) => a + b, 0) / runsNeeded.length)}\n` +
             `  at ${MINUTES_PER_RUN} min a run: typically ${humanTime(typical)} of play\n`
           : `  no perfect season within ${CAP} runs per trial\n`) +
-        `  failed runs ended in the league ${lostInLeague}× and in the playoffs ${lostInPlayoffs}× · best failed run: ${bestFailure} wins in a row\n` +
+        `  failed runs ended in the league ${lostInLeague}× and in the playoffs ${lostInPlayoffs}× · best failed run: ${bestFailure} wins before the first slip\n` +
         `  (simulated in ${((performance.now() - started) / 1000).toFixed(0)} s)\n`,
     );
   }

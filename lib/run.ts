@@ -184,7 +184,7 @@ export function runSummary(run: RunState): string {
   }
   if (phase === "playoffs") return "Playoffs";
   const outcome = outcomeOf(run);
-  if (outcome.kind === "champion") return outcome.perfect ? "Perfect season!" : "Champions";
+  if (outcome.kind === "champion") return outcome.perfect ? "Perfect season!" : outcome.invincible ? "Invincible season!" : "Champions";
   if (outcome.kind === "eliminated") return `Knocked out (${outcome.round})`;
   if (outcome.kind === "relegated") return `Finished ${ordinal(outcome.position)}`;
   return "Finished";
