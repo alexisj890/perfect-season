@@ -69,8 +69,9 @@ export function LastResultCard(props: Props) {
       className="flex cursor-pointer flex-col gap-4 rounded-xl border border-border bg-surface p-5 hover:border-accent/60"
       aria-label="Last result"
     >
-      <div className="flex items-center justify-between text-xs font-semibold uppercase tracking-wide text-muted">
-        <span>Last result · Matchday {matchday}</span>
+      {/* The buttons drop under the label when there isn't room (e.g. with Larger text). */}
+      <div className="flex flex-wrap items-center justify-between gap-2 text-xs font-semibold uppercase tracking-wide text-muted">
+        <span className="whitespace-nowrap">Last result · Matchday {matchday}</span>
         <span className="flex items-center gap-2">
           {onReplay && (
             <button
@@ -79,7 +80,7 @@ export function LastResultCard(props: Props) {
                 event.stopPropagation();
                 onReplay();
               }}
-              className="rounded-full border border-border px-2 py-0.5 text-[11px] normal-case tracking-normal text-muted hover:border-accent hover:text-foreground"
+              className="whitespace-nowrap rounded-full border border-border px-2 py-0.5 text-xs normal-case tracking-normal text-muted hover:border-accent hover:text-foreground"
             >
               Replay ›
             </button>
@@ -91,11 +92,11 @@ export function LastResultCard(props: Props) {
               event.stopPropagation();
               onOpenRatings();
             }}
-            className="rounded-full border border-border px-2 py-0.5 text-[11px] normal-case tracking-normal text-muted hover:border-accent hover:text-foreground"
+            className="whitespace-nowrap rounded-full border border-border px-2 py-0.5 text-xs normal-case tracking-normal text-muted hover:border-accent hover:text-foreground"
           >
             Player ratings ›
           </button>
-          <span className={`rounded px-1.5 py-0.5 text-[11px] ${FORM_STYLE[outcome]}`}>{outcome}</span>
+          <span className={`rounded px-1.5 py-0.5 text-xs ${FORM_STYLE[outcome]}`}>{outcome}</span>
         </span>
       </div>
 
@@ -114,7 +115,7 @@ export function LastResultCard(props: Props) {
       <ol className="flex flex-col text-sm" aria-label="Goals">
         {timeline(result).map((row, i) =>
           row.kind === "marker" ? (
-            <li key={i} className="my-1 flex items-center gap-2 text-[11px] font-semibold text-muted">
+            <li key={i} className="my-1 flex items-center gap-2 text-xs font-semibold text-muted">
               <span className="h-px flex-1 bg-border" />
               <span className="tabular-nums">
                 {row.label} {row.home}–{row.away}

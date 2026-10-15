@@ -81,7 +81,7 @@ export function SeasonScreen({ data }: { data: GameData }) {
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between gap-6 rounded-xl border border-border bg-surface px-5 py-3">
-        <div className="text-sm tabular-nums text-muted">
+        <div className="whitespace-nowrap text-sm tabular-nums text-muted">
           {next ? (
             <>
               Matchday <b className="text-foreground">{next.matchday}</b> of {totalMatchdays}
@@ -100,7 +100,7 @@ export function SeasonScreen({ data }: { data: GameData }) {
           type="button"
           disabled={!next}
           onClick={() => setConfirmingSim(true)}
-          className="rounded-full border border-border px-3 py-1 text-xs font-semibold hover:border-accent disabled:opacity-40"
+          className="whitespace-nowrap rounded-full border border-border px-3 py-1 text-xs font-semibold hover:border-accent disabled:opacity-40"
         >
           Sim to end of season
         </button>

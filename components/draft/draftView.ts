@@ -93,12 +93,13 @@ export function surname(name: string): string {
   return parts.length > 1 ? parts.slice(1).join(" ") : name;
 }
 
-// Colours for each fit tier (readable in both themes). `short` fits under a
+// Colours for each fit tier: a darker shade by day and a lighter one at night,
+// so each reads at 4.5:1 or better. The label is always shown too. `short` fits under a
 // slot on a small pitch, where neighbouring labels would otherwise collide.
 export const FIT_STYLE: Record<string, { label: string; short: string; className: string }> = {
-  Natural: { label: "Natural", short: "Natural", className: "border-emerald-500 text-emerald-500" },
-  Secondary: { label: "Secondary", short: "Secondary", className: "border-sky-500 text-sky-500" },
-  Similar: { label: "Similar", short: "Similar", className: "border-amber-500 text-amber-500" },
-  "Out of position": { label: "Out of position", short: "Out of pos.", className: "border-orange-500 text-orange-500" },
-  "Goalkeeper swap": { label: "Keeper swap", short: "Keeper swap", className: "border-red-500 text-red-500" },
+  Natural: { label: "Natural", short: "Natural", className: "border-emerald-700 text-emerald-700 dark:border-emerald-400 dark:text-emerald-400" },
+  Secondary: { label: "Secondary", short: "Secondary", className: "border-sky-700 text-sky-700 dark:border-sky-400 dark:text-sky-400" },
+  Similar: { label: "Similar", short: "Similar", className: "border-amber-700 text-amber-700 dark:border-amber-400 dark:text-amber-400" },
+  "Out of position": { label: "Out of position", short: "Out of pos.", className: "border-orange-700 text-orange-700 dark:border-orange-400 dark:text-orange-400" },
+  "Goalkeeper swap": { label: "Keeper swap", short: "Keeper swap", className: "border-red-700 text-red-700 dark:border-red-400 dark:text-red-400" },
 };

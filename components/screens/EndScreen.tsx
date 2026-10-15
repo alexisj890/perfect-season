@@ -147,7 +147,7 @@ function Award(props: {
   const { title, stats, name, playersById, goals = false } = props;
   return (
     <section className="flex flex-col gap-1 rounded-xl border border-border bg-surface p-3" aria-label={title}>
-      <h3 className="text-[11px] font-semibold uppercase tracking-wide text-muted">{title}</h3>
+      <h3 className="text-xs font-semibold uppercase tracking-wide text-muted">{title}</h3>
       {stats ? (
         <>
           <span className="truncate text-sm font-semibold">{name(stats.playerId)}</span>

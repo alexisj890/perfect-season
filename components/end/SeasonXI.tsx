@@ -40,7 +40,7 @@ export function SeasonXI({ slots, squad, playersById, bestId }: Props) {
                 }`}
               >
                 {slot.id}
-                <RatingBadge rating={s.averageRating} className="absolute -right-3 -top-2 min-w-7 text-[10px]" />
+                <RatingBadge rating={s.averageRating} className="absolute -right-3 -top-2 min-w-7 text-xs" />
               </span>
               <span className="max-w-24 truncate rounded bg-black/45 px-1.5 text-xs font-medium text-white">
                 {surname(player.name)}

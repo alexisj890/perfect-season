@@ -47,8 +47,9 @@ export function matchesOn(season: SeasonState, matchday: number): LeagueMatch[] 
   return season.matches.filter((m) => m.matchday === matchday);
 }
 
+// White letters on dark enough fills (at least 5:1); the letter carries the meaning.
 export const FORM_STYLE: Record<FormLetter, string> = {
-  W: "bg-emerald-500 text-white",
-  D: "bg-slate-400 text-white",
-  L: "bg-red-500 text-white",
+  W: "bg-emerald-700 text-white",
+  D: "bg-slate-600 text-white",
+  L: "bg-red-700 text-white",
 };

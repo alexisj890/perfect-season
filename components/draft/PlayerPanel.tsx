@@ -51,7 +51,7 @@ export function PlayerPanel({ player, options, chemistry, canPick, onPick }: Pro
 
       <div>
         <div className="mb-1 text-xs font-semibold uppercase tracking-wide text-muted">
-          Chemistry with your XI: <span className={chemistry.total >= 0 ? "text-emerald-500" : "text-red-500"}>
+          Chemistry with your XI: <span className={chemistry.total >= 0 ? "text-emerald-700 dark:text-emerald-400" : "text-red-700 dark:text-red-400"}>
             {chemistry.total >= 0 ? "+" : ""}
             {chemistry.total}
           </span>

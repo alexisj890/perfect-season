@@ -22,11 +22,11 @@ export function LeagueTable({ rows, names, user, playoffPlaces, formOf }: Props)
               <th className="py-1.5 pl-4 pr-2 text-right font-semibold">#</th>
               <th className="px-2 text-left font-semibold">Team</th>
               {["P", "W", "D", "L", "GD", "Pts"].map((h) => (
-                <th key={h} className="px-2 text-right font-semibold">
+                <th key={h} className="px-1.5 text-right font-semibold">
                   {h}
                 </th>
               ))}
-              <th className="px-4 text-left font-semibold">Form</th>
+              <th className="pl-2 pr-4 text-left font-semibold">Form</th>
             </tr>
           </thead>
           <tbody>
@@ -38,14 +38,17 @@ export function LeagueTable({ rows, names, user, playoffPlaces, formOf }: Props)
                 }`}
               >
                 <td className="py-1 pl-4 pr-2 text-right text-muted">{i + 1}</td>
-                <td className={`max-w-48 truncate px-2 ${r.team === user ? "text-accent" : ""}`}>{names[r.team]}</td>
-                <td className="px-2 text-right">{r.played}</td>
-                <td className="px-2 text-right">{r.won}</td>
-                <td className="px-2 text-right">{r.drawn}</td>
-                <td className="px-2 text-right">{r.lost}</td>
-                <td className="px-2 text-right">{r.goalDifference > 0 ? `+${r.goalDifference}` : r.goalDifference}</td>
-                <td className="px-2 text-right font-semibold">{r.points}</td>
-                <td className="px-4">
+                {/* Takes whatever room is left (and truncates), so the form chips always fit. */}
+                <td className={`w-full max-w-0 truncate px-2 ${r.team === user ? "text-accent" : ""}`} title={names[r.team]}>
+                  {names[r.team]}
+                </td>
+                <td className="px-1.5 text-right">{r.played}</td>
+                <td className="px-1.5 text-right">{r.won}</td>
+                <td className="px-1.5 text-right">{r.drawn}</td>
+                <td className="px-1.5 text-right">{r.lost}</td>
+                <td className="px-1.5 text-right">{r.goalDifference > 0 ? `+${r.goalDifference}` : r.goalDifference}</td>
+                <td className="px-1.5 text-right font-semibold">{r.points}</td>
+                <td className="whitespace-nowrap py-1 pl-2 pr-4">
                   <FormChips form={formOf(r.team)} />
                 </td>
               </tr>

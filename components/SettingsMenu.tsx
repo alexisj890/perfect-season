@@ -35,6 +35,14 @@ export function SettingsMenu() {
               onChange={(draftTimer) => changeSettings({ draftTimer })}
             />
           </li>
+          <li>
+            <Switch
+              label="Larger text"
+              description="Makes all text bigger, for easier reading."
+              checked={settings.largeText}
+              onChange={(largeText) => changeSettings({ largeText })}
+            />
+          </li>
         </ul>
       </Modal>
     </>

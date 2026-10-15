@@ -71,7 +71,7 @@ export function Modal({ open, onClose, title, headerExtra, returnFocusTo, wide =
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
-        className={`flex max-h-[calc(100dvh-4rem)] w-full flex-col gap-4 overflow-y-auto rounded-2xl border border-border bg-surface p-6 shadow-2xl ${
+        className={`flex max-h-[calc(100dvh-4rem)] w-full flex-col gap-4 overflow-y-auto rounded-2xl border border-border bg-surface p-6 text-left shadow-2xl ${
           wide ? "max-w-5xl" : narrow ? "max-w-xl" : "max-w-3xl"
         }`}
       >

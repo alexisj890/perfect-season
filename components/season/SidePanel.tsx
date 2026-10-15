@@ -116,7 +116,7 @@ export function SquadList({ squad, playersById }: { squad: SeasonPlayerStats[]; 
   if (apps === 0) return <p className="text-sm text-muted">Ratings appear after your first match.</p>;
   return (
     <div className="flex min-h-0 flex-col gap-1">
-      <div className="grid grid-cols-[2.5rem_1fr_1.5rem_1.5rem_1.5rem] gap-2 px-1 text-[11px] font-semibold text-muted">
+      <div className="grid grid-cols-[2.5rem_1fr_1.5rem_1.5rem_1.5rem] gap-2 px-1 text-xs font-semibold text-muted">
         <span>Avg</span>
         <span>Player · {apps} {apps === 1 ? "match" : "matches"}</span>
         <span className="text-right">G</span>

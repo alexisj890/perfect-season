@@ -5,7 +5,7 @@ export function FormChips({ form }: { form: FormLetter[] }) {
   return (
     <span className="flex gap-0.5" aria-label={`Form: ${form.join(" ")}`}>
       {form.map((f, i) => (
-        <span key={i} className={`flex h-4 w-4 items-center justify-center rounded-sm text-[10px] font-bold ${FORM_STYLE[f]}`}>
+        <span key={i} className={`flex h-5 w-5 items-center justify-center rounded-sm text-xs font-bold ${FORM_STYLE[f]}`}>
           {f}
         </span>
       ))}

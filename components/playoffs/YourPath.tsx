@@ -1,6 +1,7 @@
 // The user's knockout matches so far, each with a replay link.
 
 import Link from "next/link";
+import { FORM_STYLE } from "@/components/season/seasonView";
 import type { PlayoffMatch } from "@/lib/playoffs/playoffs";
 
 export function YourPath({ matches, names, user }: { matches: PlayoffMatch[]; names: string[]; user: number }) {
@@ -22,9 +23,7 @@ export function YourPath({ matches, names, user }: { matches: PlayoffMatch[]; na
             return (
               <li key={m.key} className="flex items-center gap-2">
                 <span
-                  className={`flex h-5 w-5 shrink-0 items-center justify-center rounded text-[11px] font-bold text-white ${
-                    letter === "W" ? "bg-emerald-500" : letter === "D" ? "bg-slate-400" : "bg-red-500"
-                  }`}
+                  className={`flex h-5 w-5 shrink-0 items-center justify-center rounded text-xs font-bold ${FORM_STYLE[letter]}`}
                 >
                   {letter}
                 </span>

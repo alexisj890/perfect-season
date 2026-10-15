@@ -3,6 +3,7 @@ import { Barlow, Barlow_Condensed } from "next/font/google";
 import Link from "next/link";
 import { HeaderAccount } from "@/components/HeaderAccount";
 import { SettingsMenu } from "@/components/SettingsMenu";
+import { SETTINGS_SCRIPT } from "@/components/settingsScript";
 import { ThemeToggle, THEME_SCRIPT } from "@/components/ThemeToggle";
 import "./globals.css";
 
@@ -35,6 +36,8 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <head>
         {/* Applies the saved day/night theme before the first paint, so there's no flash. */}
         <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
+        {/* Likewise Settings → Larger text. */}
+        <script dangerouslySetInnerHTML={{ __html: SETTINGS_SCRIPT }} />
       </head>
       <body className="flex min-h-full flex-col font-sans">
         <header>

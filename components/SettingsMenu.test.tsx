@@ -15,8 +15,20 @@ describe("SettingsMenu", () => {
     expect(timer.getAttribute("aria-checked")).toBe("true");
     fireEvent.click(timer);
     expect(timer.getAttribute("aria-checked")).toBe("false");
-    expect(JSON.parse(localStorage.getItem(SETTINGS_STORAGE_KEY)!)).toEqual({ draftTimer: false });
+    expect(JSON.parse(localStorage.getItem(SETTINGS_STORAGE_KEY)!)).toMatchObject({ draftTimer: false });
     fireEvent.click(timer);
     expect(timer.getAttribute("aria-checked")).toBe("true");
+  });
+
+  it("switches larger text on the whole page", () => {
+    render(<SettingsMenu />);
+    fireEvent.click(screen.getByRole("button", { name: "Settings" }));
+    const large = screen.getByRole("switch", { name: /Larger text/ });
+    expect(large.getAttribute("aria-checked")).toBe("false");
+    fireEvent.click(large);
+    expect(document.documentElement.getAttribute("data-text-size")).toBe("large");
+    expect(JSON.parse(localStorage.getItem(SETTINGS_STORAGE_KEY)!)).toMatchObject({ largeText: true });
+    fireEvent.click(large);
+    expect(document.documentElement.hasAttribute("data-text-size")).toBe(false);
   });
 });

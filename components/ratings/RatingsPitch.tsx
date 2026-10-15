@@ -45,7 +45,7 @@ export function RatingsPitch({ slots, home, away, userSide, playersById }: Props
       >
         <div className="relative z-10">
           <span
-            className={`flex h-8 w-8 items-center justify-center rounded-full border-2 text-[10px] font-bold ${
+            className={`flex h-9 w-9 items-center justify-center rounded-full border-2 text-xs font-bold ${
               isUser ? "border-accent bg-accent/90 text-accent-foreground" : "border-white/70 bg-slate-700 text-white"
             }`}
           >
@@ -58,11 +58,11 @@ export function RatingsPitch({ slots, home, away, userSide, playersById }: Props
             </span>
           )}
         </div>
-        <span className="mt-0.5 max-w-20 truncate rounded bg-black/50 px-1 text-[11px] font-medium text-white">
+        <span className="mt-0.5 max-w-20 truncate rounded bg-black/50 px-1 text-xs font-medium text-white">
           {surname(player.name)}
         </span>
         {(r.goals > 0 || r.assists > 0) && (
-          <span className="text-[10px] leading-tight text-white drop-shadow" aria-label={`${r.goals} goals, ${r.assists} assists`}>
+          <span className="text-xs leading-tight text-white drop-shadow" aria-label={`${r.goals} goals, ${r.assists} assists`}>
             {"⚽".repeat(r.goals)}
             {"👟".repeat(r.assists)}
           </span>
