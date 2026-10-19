@@ -176,7 +176,22 @@ describe("email check", () => {
 });
 
 describe("friendlyError", () => {
+  const apiError = (message: string, code?: string) => Object.assign(new Error(message), { code });
+
   it("passes unknown messages through", () => {
     expect(friendlyError(new Error("Something odd"))).toBe("Something odd");
+  });
+
+  it("explains the hourly email limit instead of blaming the player", () => {
+    expect(friendlyError(apiError("email rate limit exceeded", "over_email_send_rate_limit"))).toMatch(/email limit for this hour/);
+    expect(friendlyError(apiError("email rate limit exceeded"))).toMatch(/email limit for this hour/); // no code: by wording
+  });
+
+  it("tells a player the address can't be emailed yet", () => {
+    expect(friendlyError(apiError('Email address "x@y.com" not authorized', "email_address_not_authorized"))).toMatch(/only open to the game's testers/);
+  });
+
+  it("prefers the code over the wording", () => {
+    expect(friendlyError(apiError("anything", "invalid_credentials"))).toBe("That email and password don't match an account.");
   });
 });

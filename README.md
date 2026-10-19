@@ -96,7 +96,7 @@ Neymar) join the pool as extras.
 3. Open <http://localhost:3000> and press **Start a run**.
 
 No account or keys are needed to play as a guest. Accounts need a Supabase project: follow
-[docs/supabase-setup.md](docs/supabase-setup.md), then copy `.env.example` to `.env.local`.
+[docs/supabase-setup.md](docs/supabase-setup.md), which lists the two keys to put in `.env.local`.
 
 ## Scripts
 

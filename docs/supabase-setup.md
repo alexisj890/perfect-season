@@ -27,11 +27,20 @@ project exists. Tick the boxes as you go.
 ## A2. Connect the app (keys)
 
 - [ ] In the dashboard: **Project Settings → API Keys** (or the **Connect** button).
-- [ ] Copy `.env.example` to **`.env.local`** (or `.env`) in the project folder and fill in:
+- [ ] Create a file called **`.env.local`** in the project folder with:
 
 ```
 NEXT_PUBLIC_SUPABASE_URL=https://<your-project-ref>.supabase.co
 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=sb_publishable_...
+```
+
+- [ ] Optional, for automated end-to-end checks: a throwaway test account
+  (**Authentication → Users → Add user**, tick **Auto Confirm User**). No
+  `NEXT_PUBLIC_` prefix, so these never reach the browser:
+
+```
+E2E_TEST_EMAIL=test@example.com
+E2E_TEST_PASSWORD=...
 ```
 
 - [ ] Restart `npm run dev` after changing env files (Next.js reads them at start-up).
@@ -45,8 +54,7 @@ NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=sb_publishable_...
 > (being retired by the end of 2026). Use the new ones.
 
 > `NEXT_PUBLIC_` is how Next.js decides which env values the browser may see.
-> Env files are in `.gitignore` (`.env*`), so they never reach GitHub; only
-> `.env.example` (names, no values) is committed.
+> Env files are in `.gitignore` (`.env*`), so they never reach GitHub.
 
 ## A3. Allowed URLs
 
@@ -195,6 +203,11 @@ Then:
 - **Sign-up email never arrives** — the built-in service only emails your Supabase
   team, at most 2 per hour; wait, or check **Authentication → Users** (you can
   confirm a user by hand there while testing).
+- **"The email limit for this hour has been reached"** — the built-in email
+  service sends 2 emails an hour for the whole project (sign-ups and resets both
+  count). Wait an hour; or, for testing, turn **Confirm email** off (sign-up then
+  sends no email and signs you straight in) or add the user by hand with
+  **Auto Confirm**. A custom SMTP server lifts the limit.
 - **"That sign-in link didn't work"** — the email link was opened in a different
   browser from the one you signed up in (or it was used already). Sign in with
   the password instead, or open the link in the original browser.

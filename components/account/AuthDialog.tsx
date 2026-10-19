@@ -266,14 +266,37 @@ function returnTo(next: string): string {
   return `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}`;
 }
 
-// Supabase's messages, in plainer words where they're unclear.
+// Supabase's errors in plain words. Each error has a code (more reliable than
+// its wording); the wording is a fallback for errors without one.
+const BY_CODE: Record<string, string> = {
+  invalid_credentials: "That email and password don't match an account.",
+  email_not_confirmed: "Please confirm your email first: check your inbox for the link.",
+  user_already_exists: "There's already an account with that email. Try signing in.",
+  email_exists: "There's already an account with that email. Try signing in.",
+  weak_password: "That password is too easy to guess. Try a longer one with a mix of characters.",
+  same_password: "That's your current password. Choose a different one.",
+  email_address_invalid: "That email address can't be used. Check it for typos.",
+  signup_disabled: "New accounts are switched off at the moment.",
+  // Supabase's built-in email service sends only 2 emails an hour for the whole
+  // project (docs/supabase-setup.md, A4).
+  over_email_send_rate_limit:
+    "We can't send another email right now: the email limit for this hour has been reached. Please try again in an hour, or sign in if you already have an account.",
+  // The built-in service only emails members of the Supabase project's team.
+  email_address_not_authorized: "We can't send email to that address yet. Accounts are only open to the game's testers for now.",
+  over_request_rate_limit: "Too many tries in a short time. Please wait a few minutes and try again.",
+};
+
 export function friendlyError(error: unknown): string {
+  const code = typeof error === "object" && error !== null && "code" in error ? String((error as { code: unknown }).code) : "";
+  if (BY_CODE[code]) return BY_CODE[code];
   const message = error instanceof Error ? error.message : String(error);
-  if (/invalid login credentials/i.test(message)) return "That email and password don't match an account.";
-  if (/email not confirmed/i.test(message)) return "Please confirm your email first: check your inbox for the link.";
-  if (/user already registered/i.test(message)) return "There's already an account with that email. Try signing in.";
+  if (/invalid login credentials/i.test(message)) return BY_CODE.invalid_credentials;
+  if (/email not confirmed/i.test(message)) return BY_CODE.email_not_confirmed;
+  if (/user already registered/i.test(message)) return BY_CODE.user_already_exists;
   if (/provider is not enabled/i.test(message)) return "Google sign-in isn't switched on yet. Use email for now.";
-  if (/rate limit|too many/i.test(message)) return "Too many tries. Please wait a few minutes and try again.";
+  if (/email rate limit/i.test(message)) return BY_CODE.over_email_send_rate_limit;
+  if (/not authorized/i.test(message)) return BY_CODE.email_address_not_authorized;
+  if (/rate limit|too many/i.test(message)) return BY_CODE.over_request_rate_limit;
   if (/fetch|network/i.test(message)) return "Can't reach the server. Check your connection and try again.";
   return message;
 }

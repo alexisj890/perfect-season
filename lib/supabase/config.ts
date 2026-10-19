@@ -1,5 +1,5 @@
-// The Supabase project the app talks to, from .env.local (see .env.example and
-// docs/supabase-setup.md). NEXT_PUBLIC_ values are built into the browser code,
+// The Supabase project the app talks to, from .env.local (see
+// docs/supabase-setup.md, step A2). NEXT_PUBLIC_ values are built into the browser code,
 // which is fine: the publishable key can only do what Row Level Security allows.
 //
 // Without them the game still works, guest-only: accounts are simply hidden.

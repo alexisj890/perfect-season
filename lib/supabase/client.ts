@@ -7,6 +7,6 @@ import { createBrowserClient } from "@supabase/ssr";
 import { SUPABASE_PUBLISHABLE_KEY, SUPABASE_URL, supabaseConfigured } from "./config";
 
 export function browserSupabase() {
-  if (!supabaseConfigured) throw new Error("Supabase isn't configured (see .env.example)");
+  if (!supabaseConfigured) throw new Error("Supabase isn't configured (see docs/supabase-setup.md, step A2)");
   return createBrowserClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
 }
