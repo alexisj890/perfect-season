@@ -78,6 +78,11 @@ export function AuthDialog({ open, onClose, returnFocusTo }: Props) {
     event.preventDefault();
     setError(null);
     setNotice(null);
+    if (!looksLikeEmail(email)) {
+      setError(EMAIL_HINT + ".");
+      emailField.current?.focus();
+      return;
+    }
     if (view === "signUp") {
       const missing = passwordProblems(password);
       if (missing.length > 0) {
@@ -91,15 +96,16 @@ export function AuthDialog({ open, onClose, returnFocusTo }: Props) {
     }
     setBusy(true);
     const auth = browserSupabase().auth;
+    const address = email.trim(); // a stray space from copy-paste shouldn't fail sign-in
     try {
       if (view === "signIn") {
-        const { error } = await auth.signInWithPassword({ email, password });
+        const { error } = await auth.signInWithPassword({ email: address, password });
         if (error) throw error;
         close(); // CloudSync takes it from here
         return;
       }
       if (view === "signUp") {
-        const { data, error } = await auth.signUp({ email, password, options: { emailRedirectTo: returnTo("/?auth=confirmed") } });
+        const { data, error } = await auth.signUp({ email: address, password, options: { emailRedirectTo: returnTo("/?auth=confirmed") } });
         if (error) throw error;
         if (data.session) {
           close(); // email confirmation is switched off: signed in already
@@ -107,13 +113,13 @@ export function AuthDialog({ open, onClose, returnFocusTo }: Props) {
         }
         setPassword("");
         setConfirm("");
-        setNotice(`Check ${email} for a link to confirm your account, and open it in this browser. It can take a minute to arrive.`);
+        setNotice(`Check ${address} for a link to confirm your account, and open it in this browser. It can take a minute to arrive.`);
         return;
       }
-      const { error } = await auth.resetPasswordForEmail(email, { redirectTo: returnTo("/account/reset-password") });
+      const { error } = await auth.resetPasswordForEmail(address, { redirectTo: returnTo("/account/reset-password") });
       if (error) throw error;
       // Supabase doesn't say whether the account exists (so nobody can check other people's emails).
-      setNotice(`If ${email} has an account, a link to reset the password is on its way.`);
+      setNotice(`If ${address} has an account, a link to reset the password is on its way.`);
     } catch (caught) {
       setError(friendlyError(caught));
     } finally {
@@ -132,6 +138,7 @@ export function AuthDialog({ open, onClose, returnFocusTo }: Props) {
     if (error) setError(friendlyError(error));
   }
 
+  const emailInvalid = email.trim() !== "" && !looksLikeEmail(email);
   const field = "rounded-md border border-border bg-background px-3 py-2 text-base outline-none focus:border-accent";
 
   return (
@@ -155,10 +162,31 @@ export function AuthDialog({ open, onClose, returnFocusTo }: Props) {
       )}
 
       <form onSubmit={submit} className="flex flex-col gap-3">
-        <label className="flex flex-col gap-1 text-sm">
-          <span className="text-muted">Email</span>
-          <input ref={emailField} data-autofocus type="email" required autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} className={field} />
-        </label>
+        <div className="flex flex-col gap-1 text-sm">
+          <label htmlFor="auth-email" className="text-muted">
+            Email
+          </label>
+          <input
+            ref={emailField}
+            id="auth-email"
+            data-autofocus
+            type="email"
+            required
+            autoComplete="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            aria-invalid={emailInvalid}
+            aria-describedby={emailInvalid ? "auth-email-hint" : undefined}
+            className={`${field} ${emailInvalid ? "border-danger" : ""}`}
+          />
+          {/* Shown as soon as there's something typed that isn't an email yet. */}
+          {emailInvalid && (
+            <span id="auth-email-hint" className="text-xs text-danger">
+              <span aria-hidden="true">✗ </span>
+              {EMAIL_HINT}
+            </span>
+          )}
+        </div>
         {view !== "reset" && (
           <PasswordField
             label="Password"
@@ -223,6 +251,14 @@ export function AuthDialog({ open, onClose, returnFocusTo }: Props) {
     </Modal>
   );
 }
+
+// Looks like an email address: something@something.something, no spaces.
+// (Supabase does the real check; this just catches typos as you type.)
+export function looksLikeEmail(text: string): boolean {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(text.trim());
+}
+
+export const EMAIL_HINT = "Enter a valid email, like name@example.com";
 
 // Where an email link brings the player back: through /auth/callback, which
 // signs them in, then on to `next`.

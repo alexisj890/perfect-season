@@ -13,9 +13,12 @@ import { CloudSync, SAVE_DELAY_MS } from "./CloudSync";
 let user: { id: string; email: string } | null | undefined = undefined;
 vi.mock("@/components/useAuth", () => ({ useAuth: () => user }));
 vi.mock("@/lib/supabase/client", () => ({ browserSupabase: () => ({}) }));
-const cloud = { latest: null as RunState | null, ids: new Set<string>(), saved: [] as RunState[] };
+const cloud = { latest: null as RunState | null, ids: new Set<string>(), saved: [] as RunState[], wait: null as Promise<void> | null };
 vi.mock("@/lib/cloud/runs", () => ({
-  fetchLatestRun: async () => cloud.latest,
+  fetchLatestRun: async () => {
+    await cloud.wait; // lets a test hold the account check open
+    return cloud.latest;
+  },
   runIsInAccount: async (_: unknown, id: string) => cloud.ids.has(id),
   saveRunToAccount: async (_: unknown, run: RunState) => {
     cloud.saved.push(run);
@@ -41,6 +44,7 @@ beforeEach(() => {
   cloud.latest = null;
   cloud.ids = new Set();
   cloud.saved = [];
+  cloud.wait = null;
   clearSavedRun();
 });
 afterEach(() => {
@@ -100,5 +104,21 @@ describe("CloudSync", () => {
     user = null;
     await act(async () => view.rerender(app()));
     expect(loadRun()).toBeNull();
+  });
+
+  it("saves a change made while the account check was still running", async () => {
+    cloud.latest = accountRun;
+    cloud.ids.add("account");
+    updateRun(accountRun);
+    let finishCheck = () => {};
+    cloud.wait = new Promise((resolve) => (finishCheck = resolve));
+    const view = render(app());
+    await signIn(view); // the check is now waiting on the account
+    const next = playLeague(accountRun, data, "matchday");
+    await act(async () => updateRun(next)); // a match played meanwhile
+    vi.useFakeTimers();
+    await act(async () => finishCheck());
+    await act(async () => vi.advanceTimersByTime(SAVE_DELAY_MS + 10));
+    expect(cloud.saved).toEqual([next]);
   });
 });

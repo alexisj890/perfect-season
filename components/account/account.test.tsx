@@ -2,7 +2,7 @@
 
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { AuthDialog, friendlyError } from "./AuthDialog";
+import { AuthDialog, friendlyError, looksLikeEmail } from "./AuthDialog";
 
 const auth = {
   signInWithPassword: vi.fn(),
@@ -142,6 +142,36 @@ describe("AuthDialog", () => {
     render(<AuthDialog open onClose={() => {}} />);
     fireEvent.click(await screen.findByRole("button", { name: "Continue with Google" }));
     expect((await screen.findByRole("alert")).textContent).toMatch(/Google sign-in isn't switched on/);
+  });
+});
+
+describe("email check", () => {
+  it("says the email isn't valid while typing, until it looks like one", () => {
+    render(<AuthDialog open onClose={() => {}} />);
+    const field = screen.getByLabelText("Email");
+    expect(screen.queryByText(/Enter a valid email/)).toBeNull(); // nothing typed yet
+    for (const partial of ["a", "alexis", "alexis@", "alexis@gmail", "alexis@gmail."]) {
+      fill("Email", partial);
+      expect(screen.getByText(/Enter a valid email/), partial).toBeTruthy();
+      expect(field.getAttribute("aria-invalid")).toBe("true");
+    }
+    fill("Email", "alexis@gmail.com");
+    expect(screen.queryByText(/Enter a valid email/)).toBeNull();
+    expect(field.getAttribute("aria-invalid")).toBe("false");
+  });
+
+  it("won't send a request for an email that isn't valid", async () => {
+    render(<AuthDialog open onClose={() => {}} />);
+    fill("Email", "alexis@gmail");
+    fill("Password", "whatever");
+    fireEvent.click(screen.getByRole("button", { name: "Sign in" }));
+    expect((await screen.findByRole("alert")).textContent).toBe("Enter a valid email, like name@example.com.");
+    expect(auth.signInWithPassword).not.toHaveBeenCalled();
+  });
+
+  it("accepts ordinary addresses and rejects typos", () => {
+    for (const ok of ["a@b.co", "first.last+tag@sub.example.org", " padded@example.com "]) expect(looksLikeEmail(ok), ok).toBe(true);
+    for (const bad of ["", "plain", "no@dot", "two@@example.com", "space in@example.com", "trailing@dot."]) expect(looksLikeEmail(bad), bad).toBe(false);
   });
 });
 

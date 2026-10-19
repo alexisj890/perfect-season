@@ -15,7 +15,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Modal } from "@/components/ui/Modal";
-import { useAuth } from "@/components/useAuth";
+import { useAuth, type AuthUser } from "@/components/useAuth";
 import { useSavedRun } from "@/components/useSavedRun";
 import { fetchLatestRun, runIsInAccount, saveRunToAccount } from "@/lib/cloud/runs";
 import { reconcile } from "@/lib/cloud/sync";
@@ -33,7 +33,12 @@ export function CloudSync() {
 
   const userId = user?.id ?? null;
   const previousUser = useRef<string | null | undefined>(undefined);
-  const ready = useRef(false); // true once the browser and account copies agree
+  // The sign-in whose browser and account copies have been compared and agree.
+  // useAuth gives each sign-in its own object, so signing out and back in
+  // starts unchecked again. State, not a ref: when it's set, the save effect
+  // below runs again, so a change made during the comparison is saved at once.
+  const [syncedFor, setSyncedFor] = useState<AuthUser | null>(null);
+  const ready = !!user && syncedFor === user;
   const lastSent = useRef<RunState | null>(null); // the run object last saved to the account
   const runRef = useRef(run);
   useEffect(() => {
@@ -48,7 +53,6 @@ export function CloudSync() {
     if (before === userId) return;
 
     if (userId === null) {
-      ready.current = false;
       lastSent.current = null;
       setSyncStatus("idle");
       // Signed out (not just "a guest from the start"): clear this computer's copy.
@@ -57,7 +61,6 @@ export function CloudSync() {
     }
 
     let cancelled = false;
-    ready.current = false;
     (async () => {
       try {
         setSyncStatus("saving");
@@ -75,12 +78,12 @@ export function CloudSync() {
         if (decision.action === "upload") await saveRunToAccount(client, decision.run);
         if (decision.action === "download") update(decision.run);
         lastSent.current = decision.action === "nothing" ? local : decision.run;
-        ready.current = true;
+        setSyncedFor(user ?? null);
         setSyncStatus("saved");
       } catch (error) {
         console.error("Couldn't reach your account", error);
         if (!cancelled) setSyncStatus("error");
-        ready.current = true; // keep playing; changes are retried on the next save
+        if (!cancelled) setSyncedFor(user); // keep playing; changes are retried on the next save
       }
     })();
     return () => {
@@ -90,7 +93,7 @@ export function CloudSync() {
 
   // Saving changes while signed in.
   useEffect(() => {
-    if (!userId || !run || !ready.current || run === lastSent.current) return;
+    if (!userId || !run || !ready || run === lastSent.current) return;
     const toSave = run;
     const timer = setTimeout(() => void send(), SAVE_DELAY_MS);
     async function send() {
@@ -116,7 +119,7 @@ export function CloudSync() {
       registerFlush(null);
       document.removeEventListener("visibilitychange", onHide);
     };
-  }, [run, userId, retries]);
+  }, [run, userId, ready, retries]);
 
   // Back online after a failed save: try again.
   useEffect(() => {
@@ -134,11 +137,11 @@ export function CloudSync() {
       if (keep === "local") await saveRunToAccount(browserSupabase(), local);
       else update(cloud);
       lastSent.current = keep === "local" ? local : cloud;
-      ready.current = true;
+      setSyncedFor(user ?? null);
       setSyncStatus("saved");
     } catch (error) {
       console.error("Couldn't save to your account", error);
-      ready.current = true;
+      setSyncedFor(user ?? null);
       setSyncStatus("error");
     }
   };
