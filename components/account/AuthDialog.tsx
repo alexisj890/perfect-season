@@ -13,15 +13,16 @@
 // - With a custom email server, the templates can link to /auth/confirm
 //   instead, which works from any browser (docs/supabase-setup.md, A4).
 
-import { useEffect, useLayoutEffect, useState, type FormEvent, type RefObject } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, type FormEvent, type RefObject } from "react";
 import { Modal } from "@/components/ui/Modal";
+import { PasswordField } from "./PasswordField";
+import { describeProblems, passwordProblems } from "./passwordRules";
 import { browserSupabase } from "@/lib/supabase/client";
 import { enabledProviders } from "@/lib/supabase/providers";
 
 type View = "signIn" | "signUp" | "reset";
 
 const TITLE: Record<View, string> = { signIn: "Sign in", signUp: "Create an account", reset: "Reset your password" };
-export const MIN_PASSWORD = 8;
 
 interface Props {
   open: boolean;
@@ -33,6 +34,7 @@ export function AuthDialog({ open, onClose, returnFocusTo }: Props) {
   const [view, setView] = useState<View>("signIn");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirm, setConfirm] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
@@ -50,6 +52,7 @@ export function AuthDialog({ open, onClose, returnFocusTo }: Props) {
   const reset = () => {
     setView("signIn");
     setPassword("");
+    setConfirm("");
     setBusy(false);
     setError(null);
     setNotice(null);
@@ -61,19 +64,30 @@ export function AuthDialog({ open, onClose, returnFocusTo }: Props) {
     reset();
     onClose();
   };
+  // Switching between Sign in / Create account / Reset removes the link that was
+  // clicked, so put the cursor back in the email box rather than nowhere.
+  const emailField = useRef<HTMLInputElement>(null);
   const switchTo = (next: View) => {
     setView(next);
     setError(null);
     setNotice(null);
+    requestAnimationFrame(() => emailField.current?.focus());
   };
 
   async function submit(event: FormEvent) {
     event.preventDefault();
     setError(null);
     setNotice(null);
-    if (view === "signUp" && password.length < MIN_PASSWORD) {
-      setError(`Use at least ${MIN_PASSWORD} characters for your password.`);
-      return;
+    if (view === "signUp") {
+      const missing = passwordProblems(password);
+      if (missing.length > 0) {
+        setError(describeProblems(missing));
+        return;
+      }
+      if (password !== confirm) {
+        setError("The two passwords don't match.");
+        return;
+      }
     }
     setBusy(true);
     const auth = browserSupabase().auth;
@@ -92,6 +106,7 @@ export function AuthDialog({ open, onClose, returnFocusTo }: Props) {
           return;
         }
         setPassword("");
+        setConfirm("");
         setNotice(`Check ${email} for a link to confirm your account, and open it in this browser. It can take a minute to arrive.`);
         return;
       }
@@ -142,27 +157,19 @@ export function AuthDialog({ open, onClose, returnFocusTo }: Props) {
       <form onSubmit={submit} className="flex flex-col gap-3">
         <label className="flex flex-col gap-1 text-sm">
           <span className="text-muted">Email</span>
-          <input data-autofocus type="email" required autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} className={field} />
+          <input ref={emailField} data-autofocus type="email" required autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} className={field} />
         </label>
         {view !== "reset" && (
-          <label className="flex flex-col gap-1 text-sm">
-            <span className="text-muted">Password</span>
-            <input
-              type="password"
-              required
-              minLength={view === "signUp" ? MIN_PASSWORD : undefined}
-              autoComplete={view === "signUp" ? "new-password" : "current-password"}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className={field}
-              aria-describedby={view === "signUp" ? "password-hint" : undefined}
-            />
-          </label>
+          <PasswordField
+            label="Password"
+            value={password}
+            onChange={setPassword}
+            autoComplete={view === "signUp" ? "new-password" : "current-password"}
+            showRules={view === "signUp"}
+          />
         )}
         {view === "signUp" && (
-          <span id="password-hint" className="-mt-2 text-xs text-muted">
-            At least {MIN_PASSWORD} characters.
-          </span>
+          <PasswordField label="Confirm password" value={confirm} onChange={setConfirm} autoComplete="new-password" />
         )}
         {/* Outside the label, so the field's name stays just "Password". */}
         {view === "signIn" && (

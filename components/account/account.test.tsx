@@ -42,25 +42,70 @@ describe("AuthDialog", () => {
     expect((await screen.findByRole("alert")).textContent).toBe("That email and password don't match an account.");
   });
 
-  it("creates an account and asks the player to confirm their email", async () => {
+  it("creates an account once the password meets every rule and is typed twice", async () => {
     auth.signUp.mockResolvedValue({ data: { session: null, user: { id: "u1" } }, error: null });
     render(<AuthDialog open onClose={() => {}} />);
     fireEvent.click(screen.getByRole("button", { name: "Create an account" }));
     expect(screen.getByRole("dialog", { name: "Create an account" })).toBeTruthy();
     fill("Email", "new@example.com");
-    fill("Password", "short");
+
+    // Too weak: the error says exactly what's missing.
+    fill("Password", "lowercase");
+    fill("Confirm password", "lowercase");
     fireEvent.click(screen.getByRole("button", { name: "Create account" }));
-    expect((await screen.findByRole("alert")).textContent).toMatch(/at least 8 characters/);
+    expect((await screen.findByRole("alert")).textContent).toBe(
+      "Your password still needs: a capital letter (A–Z), a number (0–9), a symbol, such as ! ? # or @.",
+    );
     expect(auth.signUp).not.toHaveBeenCalled();
 
-    fill("Password", "long enough pass");
+    // Strong, but the two don't match.
+    fill("Password", "Strong#Pass1");
+    fill("Confirm password", "Strong#Pass2");
+    fireEvent.click(screen.getByRole("button", { name: "Create account" }));
+    expect((await screen.findByRole("alert")).textContent).toBe("The two passwords don't match.");
+    expect(auth.signUp).not.toHaveBeenCalled();
+
+    fill("Confirm password", "Strong#Pass1");
     fireEvent.click(screen.getByRole("button", { name: "Create account" }));
     expect((await screen.findByRole("status")).textContent).toMatch(/Check new@example.com/);
     expect(auth.signUp.mock.calls[0][0]).toMatchObject({
       email: "new@example.com",
-      password: "long enough pass",
+      password: "Strong#Pass1",
       options: { emailRedirectTo: "http://localhost:3000/auth/callback?next=%2F%3Fauth%3Dconfirmed" },
     });
+  });
+
+  it("ticks off each password rule as it's met", () => {
+    render(<AuthDialog open onClose={() => {}} />);
+    fireEvent.click(screen.getByRole("button", { name: "Create an account" }));
+    const rules = () => screen.getByRole("list", { name: "Password needs" }).textContent!;
+    expect(rules()).toContain("✗ A capital letter");
+    fill("Password", "Abc");
+    expect(rules()).toContain("✓ A capital letter");
+    expect(rules()).toContain("✗ At least 8 characters");
+  });
+
+  it("shows and hides what's typed in a password box", () => {
+    render(<AuthDialog open onClose={() => {}} />);
+    const field = screen.getByLabelText("Password") as HTMLInputElement;
+    expect(field.type).toBe("password");
+    fireEvent.click(screen.getByRole("button", { name: "Show password" }));
+    expect(field.type).toBe("text");
+    expect(screen.getByRole("button", { name: "Hide password" }).getAttribute("aria-pressed")).toBe("true");
+    fireEvent.click(screen.getByRole("button", { name: "Hide password" }));
+    expect(field.type).toBe("password");
+  });
+
+  it("puts the cursor back in Email after switching to Create account", async () => {
+    render(<AuthDialog open onClose={() => {}} />);
+    fireEvent.click(screen.getByRole("button", { name: "Create an account" }));
+    await waitFor(() => expect(document.activeElement).toBe(screen.getByLabelText("Email")));
+  });
+
+  it("asks for the password only once when signing in", () => {
+    render(<AuthDialog open onClose={() => {}} />);
+    expect(screen.queryByLabelText("Confirm password")).toBeNull();
+    expect(screen.queryByRole("list", { name: "Password needs" })).toBeNull();
   });
 
   it("sends a reset link without saying whether the account exists", async () => {

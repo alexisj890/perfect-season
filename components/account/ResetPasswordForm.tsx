@@ -5,7 +5,9 @@
 
 import Link from "next/link";
 import { useState, type FormEvent } from "react";
-import { friendlyError, MIN_PASSWORD } from "@/components/account/AuthDialog";
+import { friendlyError } from "@/components/account/AuthDialog";
+import { PasswordField } from "@/components/account/PasswordField";
+import { describeProblems, passwordProblems } from "@/components/account/passwordRules";
 import { useAuth } from "@/components/useAuth";
 import { browserSupabase } from "@/lib/supabase/client";
 
@@ -40,7 +42,8 @@ export function ResetPasswordForm() {
   async function submit(event: FormEvent) {
     event.preventDefault();
     setError(null);
-    if (password.length < MIN_PASSWORD) return setError(`Use at least ${MIN_PASSWORD} characters.`);
+    const missing = passwordProblems(password);
+    if (missing.length > 0) return setError(describeProblems(missing));
     if (password !== again) return setError("The two passwords don't match.");
     setBusy(true);
     const { error } = await browserSupabase().auth.updateUser({ password });
@@ -49,18 +52,11 @@ export function ResetPasswordForm() {
     else setDone(true);
   }
 
-  const field = "rounded-md border border-border bg-background px-3 py-2 text-base outline-none focus:border-accent";
   return (
     <form onSubmit={submit} className="flex flex-col gap-3">
       <p className="text-sm text-muted">For {user?.email}</p>
-      <label className="flex flex-col gap-1 text-sm">
-        <span className="text-muted">New password (at least {MIN_PASSWORD} characters)</span>
-        <input type="password" autoComplete="new-password" required value={password} onChange={(e) => setPassword(e.target.value)} className={field} />
-      </label>
-      <label className="flex flex-col gap-1 text-sm">
-        <span className="text-muted">New password again</span>
-        <input type="password" autoComplete="new-password" required value={again} onChange={(e) => setAgain(e.target.value)} className={field} />
-      </label>
+      <PasswordField label="New password" value={password} onChange={setPassword} autoComplete="new-password" showRules />
+      <PasswordField label="Confirm new password" value={again} onChange={setAgain} autoComplete="new-password" />
       {error && (
         <p role="alert" className="rounded-md border border-danger px-3 py-2 text-sm text-danger">
           {error}

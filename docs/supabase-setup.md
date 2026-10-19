@@ -63,6 +63,11 @@ sign-in or an email link). The real site address gets added when we deploy.
 Email sign-up and **Confirm email** are on by default. Leave both on. **Nothing
 else is needed to start**: the app works with Supabase's default email templates.
 
+- [ ] **Password rules** — in **Authentication → Providers → Email** (or **Sign In /
+  Providers → Email**), set **Minimum password length** to 8 and **Password
+  requirements** to *Lowercase, uppercase letters, digits and symbols*. The app
+  checks this too, but the server rule is the one nobody can skip.
+
 How the default emails work with this app:
 
 - The link in a confirmation or reset email confirms you on Supabase, which then
