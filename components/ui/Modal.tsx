@@ -1,8 +1,10 @@
 "use client";
 
 // A dialog over a dimmed page. Closes with the X button, the Escape key, or a
-// click outside. Focus moves into the dialog when it opens, stays inside it
-// while it's open (Tab wraps around), and returns to `returnFocusTo` on close.
+// click outside. Focus moves into the dialog when it opens (to an element
+// marked data-autofocus, such as a form's first field, or else the X button),
+// stays inside it while it's open (Tab wraps around), and returns to
+// `returnFocusTo` on close.
 
 import { useEffect, useId, useRef, type ReactNode, type RefObject } from "react";
 
@@ -23,16 +25,25 @@ export function Modal({ open, onClose, title, headerExtra, returnFocusTo, wide =
   const titleId = useId();
   const dialogRef = useRef<HTMLDivElement>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
+  // The latest onClose, without re-running the effect below: parents often pass
+  // a new function on every render (every keystroke in a form), and re-running
+  // it would pull focus back to the start each time.
+  const onCloseRef = useRef(onClose);
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  });
 
+  // Runs only when the dialog opens or closes.
   useEffect(() => {
     if (!open) return;
     const returnTarget = returnFocusTo?.current;
-    closeRef.current?.focus();
+    const start = dialogRef.current?.querySelector<HTMLElement>("[data-autofocus]") ?? closeRef.current;
+    start?.focus();
 
     function onKeyDown(event: KeyboardEvent) {
       if (event.key === "Escape") {
         event.preventDefault();
-        onClose();
+        onCloseRef.current();
         return;
       }
       if (event.key !== "Tab" || !dialogRef.current) return;
@@ -54,7 +65,7 @@ export function Modal({ open, onClose, title, headerExtra, returnFocusTo, wide =
       document.removeEventListener("keydown", onKeyDown);
       returnTarget?.focus();
     };
-  }, [open, onClose, returnFocusTo]);
+  }, [open, returnFocusTo]);
 
   if (!open) return null;
 

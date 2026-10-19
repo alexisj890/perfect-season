@@ -60,11 +60,30 @@ sign-in or an email link). The real site address gets added when we deploy.
 
 ## A4. Email + password sign-up
 
-Email sign-up and **Confirm email** are on by default. Leave both on.
+Email sign-up and **Confirm email** are on by default. Leave both on. **Nothing
+else is needed to start**: the app works with Supabase's default email templates.
 
-Our app checks email links on its own server (route `/auth/confirm`), so two
-email templates need their link changed. **Authentication → Emails**
-(Templates):
+How the default emails work with this app:
+
+- The link in a confirmation or reset email confirms you on Supabase, which then
+  sends you to our `/auth/callback` route with a one-time code. That route signs
+  you in (it's the same route Google sign-in uses).
+- That code only works in **the same browser you signed up or asked for the
+  reset in**, because the browser holds the matching secret (the "PKCE" flow).
+
+Limits of Supabase's built-in email service:
+
+- It only delivers to **members of your Supabase team**, so test with the email
+  address you use for Supabase. Others get "Email address not authorized".
+- At most **2 emails per hour**.
+- Email templates can't be edited until a custom email server (SMTP) is set up.
+
+### Later: custom SMTP and email templates (optional, before launch)
+
+For real players, add an email provider (for example Resend, Postmark, or Gmail
+with an app password) under **Authentication → Emails → SMTP Settings**. Then
+point the two templates at our `/auth/confirm` route, which works from any
+browser (it checks a token in the link instead of a browser-held secret):
 
 - [ ] **Confirm signup** — set the link (the `href`) to:
 
@@ -77,9 +96,6 @@ email templates need their link changed. **Authentication → Emails**
 ```
 {{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=recovery&next=/account/reset-password
 ```
-
-> The built-in email service sends only **2 emails per hour**: fine for testing,
-> not for launch. Before launch we'll connect a real email provider (custom SMTP).
 
 ## A5. Google sign-in
 
@@ -163,7 +179,7 @@ Then:
 ## Done? Tell Claude
 
 - **After A1–A2:** step 6.7a (connecting the app) can start.
-- **After A3–A4 and A6:** 6.7b–c (accounts and cloud saves) can be tested end to end.
+- **After A3 and A6:** accounts and cloud saves can be tested end to end (A4 needs no changes).
 - **A5 (Google)** can come any time; the "Continue with Google" button works once it's on.
 
 ## Troubleshooting
@@ -171,7 +187,11 @@ Then:
 - **"Invalid API key"** — wrong key in `.env.local`, or the dev server wasn't restarted.
 - **Google says `redirect_uri_mismatch`** — the redirect URI in Google Cloud must
   match Supabase's callback URL exactly (https, no trailing slash).
-- **Sign-up email never arrives** — the 2-per-hour limit; wait, or check
-  **Authentication → Users** (you can confirm a user by hand there while testing).
+- **Sign-up email never arrives** — the built-in service only emails your Supabase
+  team, at most 2 per hour; wait, or check **Authentication → Users** (you can
+  confirm a user by hand there while testing).
+- **"That sign-in link didn't work"** — the email link was opened in a different
+  browser from the one you signed up in (or it was used already). Sign in with
+  the password instead, or open the link in the original browser.
 - **Signed in but nothing saves** — check A6 ran, and that the table shows RLS
   enabled with four policies.

@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 import { Barlow, Barlow_Condensed } from "next/font/google";
 import Link from "next/link";
+import { Suspense } from "react";
+import { AuthNotice } from "@/components/account/AuthNotice";
+import { CloudSync } from "@/components/cloud/CloudSync";
 import { HeaderAccount } from "@/components/HeaderAccount";
 import { SettingsMenu } from "@/components/SettingsMenu";
 import { SETTINGS_SCRIPT } from "@/components/settingsScript";
@@ -52,7 +55,16 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
             </div>
           </div>
         </header>
-        <main className="mx-auto flex w-full max-w-7xl flex-1 flex-col px-8 py-8">{children}</main>
+        <main className="mx-auto flex w-full max-w-7xl flex-1 flex-col px-8 py-8">
+          {/* Both read browser-only things (the URL, the saved run), so they stream in. */}
+          <Suspense fallback={null}>
+            <AuthNotice />
+          </Suspense>
+          {children}
+        </main>
+        <Suspense fallback={null}>
+          <CloudSync />
+        </Suspense>
       </body>
     </html>
   );

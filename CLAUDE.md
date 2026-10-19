@@ -6,7 +6,7 @@ A soccer team-draft web game inspired by 82-0. Sixteen all-time club XIs (1960s�
 
 ## Stack
 - Next.js (App Router) + TypeScript + Tailwind CSS
-- Supabase (Postgres) for saved runs — not set up yet. Player/reference data stays in the CSVs and is not copied into the database.
+- Supabase (Postgres + Auth) for accounts and saved runs (`@supabase/supabase-js`, `@supabase/ssr`). Player/reference data stays in the CSVs and is not copied into the database. Setup: `docs/supabase-setup.md`; keys in `.env.local` (see `.env.example`).
 - Vitest for tests
 
 ## Commands
@@ -51,7 +51,11 @@ A soccer team-draft web game inspired by 82-0. Sixteen all-time club XIs (1960s�
 - Game state (draft, season, playoffs) must be serializable so a run can be saved and resumed.
 - Saves store match results, never just a seed to replay: any engine change alters what a seed produces, so replaying would rewrite past results.
 - To keep saves small, the user's matches keep every event (for the replay); other matches keep only their goals.
-- Accounts: Google sign-in via Supabase Auth, built together with database saves at the end of Milestone 6. Until then the home page shows the sign-in section with a disabled "coming soon" button. Guest play is always allowed (guests save in the browser); keep `user_id` nullable.
+- Accounts (Supabase Auth): email + password (with email confirmation and password reset) and Google. Guest play is always allowed (guests save in the browser). Without Supabase keys the app is guest-only and the header's Sign in is disabled (`supabaseConfigured`, `lib/supabase/config.ts`).
+- Clients: `lib/supabase/client.ts` (browser, session in cookies) and `lib/supabase/server.ts` (only the auth routes). No `proxy.ts`: no page reads the session on the server, and the browser client refreshes it itself.
+- Auth routes: `app/auth/callback/route.ts` (one-time code → session: Google, and the confirmation / reset links from Supabase's default email templates, which only work in the browser that asked) and `app/auth/confirm/route.ts` (token links for custom email templates, which need custom SMTP: `type=email` confirms sign-up, `type=recovery` → `/account/reset-password`). Both only redirect to same-site paths (`safeNext`). Back on the site, `?auth=confirmed` / `?auth=error` show a notice (`AuthNotice`).
+- Database: one table, `runs` (`supabase/migrations/`): id, user_id (default `auth.uid()`), state (the whole RunState as jsonb), difficulty, finished, created_at, updated_at (set by a trigger). Row Level Security: a player can only select / insert / update / delete their own rows. Every run is kept; the newest is the current one. Schema changes go in a new dated migration file.
+- Cloud saves (`components/cloud/CloudSync.tsx`, mounted once in the layout; decisions in `lib/cloud/sync.ts`, queries in `lib/cloud/runs.ts`): the browser save stays the instant one; signed in, each change is sent to the account 2 s after the last one (or when the tab is hidden), since a run is ~330 KB. On sign-in or page load, the browser and account copies are reconciled: the same run → the one with more progress (`runProgress`; runs only move forward, so no clocks needed); a guest run and an empty account → moved in; an older account run here → follow the account; a guest run and a different account run → the player chooses. Signing out clears this computer's copy. The header shows the email, the save status and Sign out.
 
 ## UI decisions (Milestone 6)
 - Desktop first; phone layouts later.

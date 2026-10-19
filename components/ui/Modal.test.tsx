@@ -69,4 +69,23 @@ describe("Modal", () => {
     fireEvent.keyDown(document, { key: "Tab", shiftKey: true });
     expect(document.activeElement).toBe(inside);
   });
+
+  it("keeps focus in a field while typing, even when the parent passes a new onClose each render", () => {
+    function Form() {
+      const [text, setText] = useState("");
+      // A new onClose function on every render, as most parents do.
+      return (
+        <Modal open onClose={() => setText("")} title="Sign in">
+          <input data-autofocus aria-label="Email" value={text} onChange={(e) => setText(e.target.value)} />
+        </Modal>
+      );
+    }
+    render(<Form />);
+    const field = screen.getByLabelText("Email");
+    expect(document.activeElement).toBe(field); // starts in the marked field, not on the X
+    for (const value of ["a", "al", "ale"]) {
+      fireEvent.change(field, { target: { value } });
+      expect(document.activeElement).toBe(field);
+    }
+  });
 });

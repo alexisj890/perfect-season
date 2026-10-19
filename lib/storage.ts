@@ -11,12 +11,18 @@ export function loadRun(storage: Storage = localStorage): RunState | null {
   try {
     const text = storage.getItem(RUN_STORAGE_KEY);
     if (!text) return null;
-    const run = JSON.parse(text) as RunState;
-    if (run?.version !== RUN_VERSION || !run.draft) return null;
-    return run;
+    const run = JSON.parse(text);
+    return isUsableRun(run) ? run : null;
   } catch {
     return null;
   }
+}
+
+// A saved run this version of the game can load (from the browser or the
+// database): the right shape and the current save version.
+export function isUsableRun(value: unknown): value is RunState {
+  const run = value as RunState | null;
+  return run?.version === RUN_VERSION && !!run.draft;
 }
 
 export function saveRun(run: RunState, storage: Storage = localStorage): void {

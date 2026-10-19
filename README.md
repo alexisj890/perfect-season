@@ -12,10 +12,11 @@ and matches decided by player ratings, positions and chemistry.
 
 ## At a glance
 
-- **Status:** playable from start to finish in the browser, as a guest. Accounts and cloud
-  saves (Supabase) are in progress.
+- **Status:** playable from start to finish in the browser. Play as a guest, or create an
+  account so your run saves to the cloud and follows you to any device.
 - **Requires:** Node.js 20.9 or later, and npm.
-- **Saves:** your current run is saved in your browser and resumes where you left off.
+- **Saves:** your run is saved in your browser and resumes where you left off. Signed in,
+  it is also saved to your account.
 - **Screens:** built for desktop first; phone layouts come later.
 
 ## How to play
@@ -94,8 +95,8 @@ Neymar) join the pool as extras.
 
 3. Open <http://localhost:3000> and press **Start a run**.
 
-No account or keys are needed to play as a guest. Accounts will need a Supabase project:
-see [docs/supabase-setup.md](docs/supabase-setup.md) and copy `.env.example` to `.env.local`.
+No account or keys are needed to play as a guest. Accounts need a Supabase project: follow
+[docs/supabase-setup.md](docs/supabase-setup.md), then copy `.env.example` to `.env.local`.
 
 ## Scripts
 
@@ -123,11 +124,12 @@ npm run perfect -- --difficulty normal --trials 5 --cap 3000
 ## Project structure
 
 ```text
-app/          Pages, one URL per screen (landing, draft, season, match, playoffs, end)
+app/          Pages, one URL per screen, plus the sign-in routes (app/auth)
 components/   The game screens and their parts (React)
 lib/          Game logic in plain TypeScript: draft, match engine, season, playoffs
 data/         The player pool and game rules as CSV files
 scripts/      Command-line simulations (sim, season, odds, perfect)
+supabase/     Database migrations (the runs table and its security rules)
 docs/         Setup guides
 ```
 
@@ -167,13 +169,14 @@ seeded generator, so a run can be reproduced exactly.
 - TypeScript
 - Tailwind CSS
 - Vitest and React Testing Library
-- Supabase for accounts and saved runs (in progress)
+- Supabase for accounts (email and Google sign-in) and saved runs, protected by Row Level
+  Security
 
 ## Roadmap
 
 - [x] Draft, league, playoffs and end screens
 - [x] Match replays and player ratings
 - [x] Difficulty levels, draft timer and accessibility settings
-- [ ] Accounts: email sign-up and Google sign-in
-- [ ] Cloud saves across devices
+- [x] Accounts: email sign-up and Google sign-in
+- [x] Cloud saves across devices
 - [ ] Phone layouts
